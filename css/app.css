@@ -2385,3 +2385,7 @@ body.pipmode { overflow:hidden !important; background:#000 !important; }
 /* Fire Stick: el video de YouTube adentro de FUNVS sin recortes ni capas encima (la placa de video lo dibujaba negro) */
 .tvapp .slot { border-radius:0; overflow:visible; }
 .tvapp .slot .vw, .tvapp .slot .vw iframe { transform:none !important; filter:none !important; opacity:1 !important; border-radius:0; }
+/* ✍️ paseo a mano */
+.psman { display:grid; grid-template-columns:repeat(2, minmax(0, 1fr)); gap:10px; } .psman label { display:grid; gap:4px; font-size:13px; color:var(--mut); } .psman input { width:100%; box-sizing:border-box; }
+.pschips { display:flex; flex-wrap:wrap; gap:6px; margin-top:10px; } .pschips button { padding:5px 10px; font-size:13px; }
+#v-paseo .tdrow { display:flex; justify-content:space-between; align-items:center; gap:8px; } .psdel { padding:2px 8px; opacity:.55; } .psdel:hover { opacity:1; }

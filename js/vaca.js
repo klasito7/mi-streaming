@@ -109,6 +109,45 @@ const Paseo = (() => {
     if (Nav.current === 'paseo') render();
   }
 
+  /* ---------- ✍️ cargar un paseo a mano (si te olvidaste de tocar Salir/Volví) ---------- */
+  function manual() {
+    let d = $('dlgPaseoM'); if (!d) { d = document.createElement('dialog'); d.id = 'dlgPaseoM'; d.className = 'setdlg'; document.body.appendChild(d); }
+    const now = new Date(), ymd = x => `${x.getFullYear()}-${String(x.getMonth() + 1).padStart(2, '0')}-${String(x.getDate()).padStart(2, '0')}`;
+    const min7 = new Date(Date.now() - 7 * 864e5), back = new Date(Date.now() - 60 * 60e3);
+    d.innerHTML = `<h3>✍️ Cargar un paseo a mano</h3>
+      <p class="mut" style="margin-top:0">Para cuando salieron y te olvidaste de tocar 🐾 Salir. Cuenta igual que uno normal (también el sobre de Vaca si duró 15 min o más).</p>
+      <div class="psman"><label>Día<input type="date" id="pmD" value="${ymd(back)}" min="${ymd(min7)}" max="${ymd(now)}"></label>
+        <label>Salieron a las<input type="time" id="pmH" value="${hm(back)}"></label>
+        <label>Duró (min)<input type="number" id="pmMin" min="5" max="240" step="5" value="60"></label>
+        <label>Km <small class="mut">(opcional)</small><input type="number" id="pmKm" min="0" max="30" step="0.1" placeholder="—"></label></div>
+      <div class="pschips">${[20, 30, 45, 60, 90].map(m => `<button data-pm="${m}">${m} min</button>`).join('')}</div>
+      <p class="mut" id="pmErr" style="color:#ffb4a8;min-height:1em"></p>
+      <div class="btns"><button data-close>Cancelar</button><span class="sp"></span><button class="pri" id="pmOk">🐾 Anotar paseo</button></div>`;
+    d.querySelectorAll('[data-pm]').forEach(b => b.onclick = () => { $('pmMin').value = b.dataset.pm; });
+    d.querySelector('[data-close]').onclick = () => d.close();
+    $('pmOk').onclick = () => {
+      const [y, mo, da] = ($('pmD').value || '').split('-').map(Number), [hh, mm] = ($('pmH').value || '').split(':').map(Number);
+      const s = new Date(y, mo - 1, da, hh, mm).getTime(), min = Math.round(+$('pmMin').value), km = Math.round((+$('pmKm').value || 0) * 10) / 10, err = t => { $('pmErr').textContent = t; };
+      if (!s || isNaN(s)) return err('Elegí el día y la hora.');
+      if (!(min >= 5 && min <= 240)) return err('La duración tiene que estar entre 5 y 240 minutos.');
+      if (s + min * 60e3 > Date.now() + 5 * 60e3) return err('Ese paseo todavía no terminó: elegí una hora anterior.');
+      if (s < Date.now() - 7 * 864e5 - 864e5) return err('Se pueden cargar paseos de la última semana.');
+      if (list().some(p => s < p.s + p.min * 60e3 && p.s < s + min * 60e3)) return err('Ya hay un paseo anotado en ese horario.');
+      if (list().filter(p => new Date(p.s).toDateString() === new Date(s).toDateString()).length >= 4) return err('Ese día ya tiene 4 paseos anotados.');
+      const e = { s, min, km, T:null, c:null, man:true };
+      list().push(e); list().sort((a, b) => b.s - a.s); db.paseos = list().slice(0, 200); save();
+      try { Figus.paseo(e); } catch {}
+      d.close(); toast(`<b>🐾 Paseo anotado</b><small>${new Date(s).toLocaleDateString('es-AR', { weekday:'long', day:'numeric' })} · ${hm(s)} · ${min} min</small>`, { cls:'info', ms:4000 });
+      if (Nav.current === 'paseo') render();
+    };
+    d.showModal();
+  }
+  function borrar(s) {
+    const p = list().find(x => x.s === s); if (!p) return;
+    if (!confirm(`¿Borrar el paseo del ${new Date(s).toLocaleDateString('es-AR', { weekday:'long', day:'numeric' })} a las ${hm(s)}?`)) return;
+    db.paseos = list().filter(x => x.s !== s); save(); render();
+  }
+
   /* ---------- 📊 la sección: historial, semana, hora habitual y qué llevar ---------- */
   const WX = c => c == null ? '' : c >= 51 ? '🌧' : c >= 45 ? '🌫' : c >= 3 ? '☁️' : c >= 1 ? '🌤' : '☀️';
   function render() {
@@ -118,16 +157,16 @@ const Paseo = (() => {
     const dias = new Set(sem.map(p => new Date(p.s).toDateString())).size;
     v.innerHTML = `<div class="porhero"><div class="porlogo"><img src="img/vaca.jpg" alt="" style="width:100%;height:100%;border-radius:50%;object-fit:cover"></div><div><h2>Paseos de Vaca</h2>
         <p>${cur ? `Están de paseo hace ${Math.floor((Date.now() - cur.s) / 60e3)} min.` : 'Antes de salir te digo cómo está el tiempo y qué llevar, y te pongo un canal en solo audio.'}</p>
-        <div class="btns">${cur ? '<button class="pri" id="psEnd">🏠 Volví</button>' : '<button class="pri" id="psOpen">🐾 Salir de paseo</button>'}</div></div></div>
+        <div class="btns">${cur ? '<button class="pri" id="psEnd">🏠 Volví</button>' : '<button class="pri" id="psOpen">🐾 Salir de paseo</button>'}<button id="psMan">✍️ Cargar uno a mano</button></div></div></div>
       <div class="psstats"><div><b>${sem.length}</b><small>paseos en 7 días</small></div><div><b>${dias}/7</b><small>días que salió</small></div><div><b>${Math.round(tot / 60 * 10) / 10} h</b><small>caminando</small></div>${km ? `<div><b>${km.toFixed(1)}</b><small>km medidos</small></div>` : ''}</div>
       <h2 class="sec">Últimos paseos</h2>
-      <div class="tdlist">${P.slice(0, 15).map(p => { const d = new Date(p.s); return `<div class="tdrow"><div><b>${d.toLocaleDateString('es-AR', { weekday:'short', day:'numeric', month:'numeric' })} · ${hm(p.s)}</b><small>${p.min} min${p.km ? ` · ${p.km} km` : ''}${p.T != null ? ` · ${WX(p.c)} ${p.T}°` : ''}${p.auto ? ' · (se cerró solo)' : ''}</small></div></div>`; }).join('') || '<div class="empty">Todavía no hay paseos anotados.</div>'}</div>
+      <div class="tdlist">${P.slice(0, 15).map(p => { const d = new Date(p.s); return `<div class="tdrow"><div><b>${d.toLocaleDateString('es-AR', { weekday:'short', day:'numeric', month:'numeric' })} · ${hm(p.s)}</b><small>${p.min} min${p.km ? ` · ${p.km} km` : ''}${p.T != null ? ` · ${WX(p.c)} ${p.T}°` : ''}${p.auto ? ' · (se cerró solo)' : ''}${p.man ? ' · ✍️ a mano' : ''}</small></div><button class="psdel" data-psdel="${p.s}" title="Borrar">✕</button></div>`; }).join('') || '<div class="empty">Todavía no hay paseos anotados.</div>'}</div>
       <h2 class="sec">Ajustes del paseo</h2>
       <div class="box"><label>⏰ Hora habitual del paseo <small class="mut">(20 min antes te aviso con el clima; vacío = sin aviso)</small></label><input type="time" id="psHora" value="${esc(cfg().hora || '')}" style="width:auto">
         <label style="margin-top:8px">🎒 Qué llevar <small class="mut">(uno por renglón)</small></label><textarea id="psLlevar" rows="4" style="width:100%">${esc((cfg().llevar || LLEVAR).join('\n'))}</textarea>
         <div class="btns"><span class="sp"></span><button class="pri" id="psSave">Guardar cambios</button></div></div>
       <p class="mut" style="font-size:12px">Sobre Google Maps y Google Fit: la Cronología de Maps ahora se guarda solo en tu celu (Google no deja que otras apps la lean) y Google anunció el cierre de las conexiones de Fit para apps de afuera, así que FUNVS anota los paseos por su cuenta.</p>`;
-    $('psOpen') && ($('psOpen').onclick = open); $('psEnd') && ($('psEnd').onclick = () => end());
+    $('psOpen') && ($('psOpen').onclick = open); $('psMan').onclick = manual; v.querySelectorAll('[data-psdel]').forEach(b => b.onclick = () => borrar(+b.dataset.psdel)); $('psEnd') && ($('psEnd').onclick = () => end());
     $('psSave').onclick = () => { const c = cfg(); c.hora = $('psHora').value; c.llevar = $('psLlevar').value.split('\n').map(x => x.trim()).filter(Boolean); if (!c.llevar.length) c.llevar = LLEVAR; save(); toast('🐶 Guardado', { ms:1500 }); };
   }
   /* ⏰ 20 min antes de la hora habitual: aviso con el clima */
@@ -150,7 +189,7 @@ const Paseo = (() => {
     if (cur) { run(); if (S.get('paseoGeo', false)) geo(true); }
     setInterval(recordar, 60e3);
   }
-  return { init, render, open, end, get on() { return !!cur; }, get since() { return cur?.s; } };
+  return { init, render, open, end, manual, get on() { return !!cur; }, get since() { return cur?.s; } };
 })();
 
 /* =========================================================
