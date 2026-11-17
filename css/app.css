@@ -2382,3 +2382,6 @@ body.pipmode { overflow:hidden !important; background:#000 !important; }
 .frbig { margin:0; font:800 clamp(28px, 5.5vw, 84px)/1.15 Oswald, system-ui, sans-serif; color:#fff; overflow-wrap:anywhere; } .frbig.long { font-size:clamp(20px, 3vw, 44px); font-weight:600; }
 .frshowx { position:absolute; bottom:16px; color:#ffffff66; font-size:13px; }
 @media (max-width:560px) { .frbar > button { flex:1 1 auto; } .frrec { flex:1 1 100%; justify-content:center; } .frep select { max-width:150px; } .frwiki img { width:70px; height:70px; } }
+/* Fire Stick: el video de YouTube adentro de FUNVS sin recortes ni capas encima (la placa de video lo dibujaba negro) */
+.tvapp .slot { border-radius:0; overflow:visible; }
+.tvapp .slot .vw, .tvapp .slot .vw iframe { transform:none !important; filter:none !important; opacity:1 !important; border-radius:0; }
