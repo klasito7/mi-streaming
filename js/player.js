@@ -51,7 +51,13 @@ const Player = (() => {
   const ytAppOn = () => S.get('ytApp', Device.mode === 'tv');
   function openYT(c, e, t) {
     const u = ytUrl(c, e, t); if (!u) return false;
-    toast(`<b>▶️ Abriendo en YouTube</b><small>Con tu cuenta${Device.mode === 'tv' ? ' · para volver a FUNVS tocá Atrás' : ''}</small>`, { ms:3500 });
+    const N = window.FUNVSNative;
+    if (N?.openYouTube) {   // app 1.4+: va directo a la app de YouTube de la tele o del celu
+      const app = N.openYouTube(u); if (!app) { toast('<b>No encontré la app de YouTube</b><small>Instalala desde la tienda de Amazon para verlo con tu cuenta (sin anuncios)</small>', { cls:'info', ms:6000 }); return false; }
+      toast(`<b>▶️ Abriendo en YouTube</b><small>Con tu cuenta${Device.mode === 'tv' ? ' · para volver a FUNVS: 🏠 Inicio y abrís FUNVS' : ''}</small>`, { ms:3500 });
+      return 'ok';
+    }
+    toast(`<b>▶️ Abriendo en YouTube</b><small>Con tu cuenta${Device.mode === 'tv' ? ' · para volver a FUNVS: 🏠 Inicio y abrís FUNVS' : ''}</small>`, { ms:3500 });
     if (inApp()) location.href = u; else window.open(u, '_blank', 'noopener');
     return true;
   }
@@ -444,7 +450,8 @@ const Player = (() => {
     const r = c.ref?.video && !c.t247 && !c.noResume && opts.start == null && db.resume?.[c.ref.video];
     if (r && r.t > 30) { opts = { ...opts, start:Math.max(0, r.t - 5) }; toast(`⏯ Seguís desde ${Math.floor(r.t / 60)}:${String(r.t % 60).padStart(2, '0')}`, { ms:2500 }); }
     const e = embedOf(c), st = Canales.status[c.uid] || {};
-    if (inApp() && ytAppOn() && e.kind === 'youtube' && !c.humor && !opts.audio && !opts.inside && layout === 1 && openYT(c, e, opts.start)) {
+    let yo; if (inApp() && ytAppOn() && e.kind === 'youtube' && !c.humor && !opts.audio && !opts.inside && layout === 1 && (yo = openYT(c, e, opts.start))) {
+      if (yo === 'ok') return;
       // si en la tele no hay app de YouTube que lo agarre (FUNVS nunca se fue a segundo plano), lo pongo adentro como siempre
       let left = false; const h = () => { if (document.hidden) left = true; }; document.addEventListener('visibilitychange', h);
       setTimeout(() => { document.removeEventListener('visibilitychange', h); if (!left && !document.hidden) { toast('<b>No encontré la app de YouTube</b><small>Lo pongo acá adentro</small>', { cls:'info', ms:3000 }); play(c, { ...opts, inside:true }); } }, 4500);

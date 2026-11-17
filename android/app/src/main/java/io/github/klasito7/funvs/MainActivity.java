@@ -143,6 +143,20 @@ public class MainActivity extends Activity {
     @JavascriptInterface public boolean hasPip() { return canPip(); }
     @JavascriptInterface public void pip() { runOnUiThread(new Runnable() { @Override public void run() { enterPip(); } }); }
     @JavascriptInterface public void playing(boolean p) { playing = p; runOnUiThread(new Runnable() { @Override public void run() { updatePip(); } }); }
+    // ▶️ abrir un video o vivo en la app oficial de YouTube (con tu cuenta: Premium sin anuncios). Devuelve qué app lo abrió o "" si no hay.
+    @JavascriptInterface public String openYouTube(String url) {
+      String[] pk = { "com.amazon.firetv.youtube", "com.google.android.youtube.tv", "com.google.android.youtube.googletv", "com.amazon.firetv.youtube.tv", "com.google.android.youtube" };
+      Uri u = Uri.parse(url);
+      for (String p : pk) {
+        try { Intent i = new Intent(Intent.ACTION_VIEW, u).setPackage(p).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+          if (i.resolveActivity(getPackageManager()) != null) { startActivity(i); return p; } } catch (Exception e) {}
+        try { getPackageManager().getPackageInfo(p, 0);   // la app está pero no acepta links: la abro igual en el video con su esquema propio
+          String v = u.getQueryParameter("v");
+          Intent i = v != null ? new Intent(Intent.ACTION_VIEW, Uri.parse("vnd.youtube:" + v)).setPackage(p) : getPackageManager().getLaunchIntentForPackage(p);
+          if (i != null) { i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK); startActivity(i); return p; } } catch (Exception e) {}
+      }
+      return "";
+    }
     // guardar un archivo (figu en PNG, copia de seguridad) en Descargas
     @JavascriptInterface public String save(String b64, String name, String mime) {
       try {

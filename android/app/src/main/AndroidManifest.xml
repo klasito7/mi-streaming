@@ -4,6 +4,15 @@
   <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
   <uses-feature android:name="android.software.leanback" android:required="false" />
   <uses-feature android:name="android.hardware.touchscreen" android:required="false" />
+  <!-- para poder abrir la app oficial de YouTube (Android 11+ pide declarar qué apps se buscan) -->
+  <queries>
+    <package android:name="com.amazon.firetv.youtube" />
+    <package android:name="com.google.android.youtube.tv" />
+    <package android:name="com.google.android.youtube.googletv" />
+    <package android:name="com.amazon.firetv.youtube.tv" />
+    <package android:name="com.google.android.youtube" />
+    <intent><action android:name="android.intent.action.VIEW" /><data android:scheme="https" android:host="www.youtube.com" /></intent>
+  </queries>
   <application android:label="@string/app_name" android:icon="@mipmap/ic_launcher" android:banner="@drawable/banner"
       android:hardwareAccelerated="true" android:usesCleartextTraffic="false" android:theme="@android:style/Theme.Black.NoTitleBar.Fullscreen">
     <activity android:name=".MainActivity" android:exported="true" android:launchMode="singleTask"
