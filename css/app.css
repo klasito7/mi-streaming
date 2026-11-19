@@ -2437,3 +2437,45 @@ html.skin-neon.tvapp button:hover, html.skin-neon.tvapp button:focus-visible, ht
 .tvapp .g6sun { background:linear-gradient(#ffd36e, #ff4fa3); } .tvapp .g6txt h2 { text-shadow:3px 3px 0 #22e6d6; } .tvapp .g6btn { box-shadow:none; }
 html.skin-neon .top button.on { background:#140a1f; color:#fff; border-color:#22e6d6; }
 @media (max-width:700px) { html.skin-neon header::after { width:120px; height:60px; top:auto; opacity:.45; } }
+
+/* ---- 🎄 Edición Navidad 2026 (del 19/11 al 6/1; sale sola del 1/12 si tenés el Clásico): rojo, verde y dorado,
+       guirnalda de lucecitas, bastón de caramelo y gorrito de Papá Noel en el logo. Navidad de verano: sin nieve ---- */
+body.gs-navidad26 { --nv-r:#c8102e; --nv-v:#0f6b3a; --nv-o:#f4c542; }
+body.gs-navidad26 .hud-tag { background:var(--nv-v); border-bottom:3px solid var(--nv-o); }
+body.gs-navidad26 .hud-tag.live { background:var(--nv-r); }
+body.gs-navidad26 .hud-tag::before { content:'🎄'; margin-right:6px; }
+body.gs-navidad26 .hud-name { background:linear-gradient(90deg, #3d0610f2, #0b0f1ecc); border-bottom:3px solid var(--nv-o); }
+body.gs-navidad26 .hud-logo { overflow:visible; }
+body.gs-navidad26 .hud-logo .v { background:linear-gradient(135deg, #e3243f, var(--nv-r)); }
+body.gs-navidad26 .hud-logo i { background:repeating-linear-gradient(90deg, var(--nv-r) 0 10px, #fff 10px 20px); height:5px; }
+body.gs-navidad26 .hud-logo::after { content:'NAVIDAD 2026'; position:absolute; right:0; top:calc(100% + 8px); font:700 10px/1 system-ui, sans-serif; letter-spacing:2px; color:#fff; background:var(--nv-v); padding:3px 7px; border-bottom:2px solid var(--nv-o); white-space:nowrap; }
+body.gs-navidad26 .hud-ticker, body.gs-navidad26 #barpop { background:linear-gradient(90deg, #3d0610, #0b0f1e 60%); border-top:3px solid var(--nv-o); }
+body.gs-navidad26 .hud-ticker::before, body.gs-navidad26 #barpop::before { content:''; position:absolute; left:0; right:0; top:-12px; height:10px; pointer-events:none;
+  background:radial-gradient(circle at 10px 5px, var(--nv-r) 0 4px, transparent 5px) 0 0 / 60px 10px, radial-gradient(circle at 30px 5px, var(--nv-o) 0 4px, transparent 5px) 0 0 / 60px 10px, radial-gradient(circle at 50px 5px, #3ccf7a 0 4px, transparent 5px) 0 0 / 60px 10px;
+  animation:nvLuz 1.6s steps(2) infinite; }
+@keyframes nvLuz { 50% { filter:brightness(.55); } }
+body.gs-navidad26 .tk-lbl, body.gs-navidad26 .bp-lbl { background:repeating-linear-gradient(-45deg, var(--nv-r) 0 10px, #e3243f 10px 20px); color:#fff; }
+body.gs-navidad26 .tk-lbl b { color:var(--nv-o); }
+body.gs-navidad26 .tk-time, body.gs-navidad26 .bp-time { background:var(--nv-v); color:#fff; }
+body.gs-navidad26 .tkc { background:#fff2; border:1px solid var(--nv-o); }
+body.gs-navidad26 #infobar { border-top:3px solid var(--nv-o); } body.gs-navidad26 .ib-ch { background:var(--nv-r); }
+body.gs-navidad26 .hud-clock { border-bottom:4px solid var(--nv-o); }
+body.gs-navidad26 .zosd { color:#fff; text-shadow:3px 3px 0 var(--nv-r), 0 0 10px #000; }
+/* gorrito de Papá Noel en el logo (dibujado: triángulo rojo, ribete y pompón blanco) */
+body.gs-navidad26 .hud-logo::before { content:''; position:absolute; z-index:2; pointer-events:none; transform:rotate(-22deg); width:0; height:0; left:-10px; top:-22px;
+  border-left:16px solid transparent; border-right:16px solid transparent; border-bottom:26px solid var(--nv-r); filter:drop-shadow(0 2px 0 #fff); }
+.sep.sep-navidad { background:radial-gradient(ellipse at 50% 110%, #3d0610 0%, #12051f 55%, #02061a 100%); overflow:hidden; }
+.sep-navidad .nv-luces { position:absolute; left:0; right:0; top:0; height:40px;
+  background:radial-gradient(circle at 15px 26px, #c8102e 0 7px, transparent 8px) 0 0 / 90px 40px, radial-gradient(circle at 45px 32px, #f4c542 0 7px, transparent 8px) 0 0 / 90px 40px, radial-gradient(circle at 75px 26px, #3ccf7a 0 7px, transparent 8px) 0 0 / 90px 40px,
+    radial-gradient(ellipse 50px 22px at 45px 0, transparent 20px, #ffffff55 21px, transparent 23px) 0 0 / 90px 40px; animation:nvLuz 1s steps(2) infinite; }
+.sep-navidad .nv-fw { position:absolute; width:180px; height:180px; border-radius:50%; opacity:0;
+  background:repeating-conic-gradient(from 0deg, #f4c542 0 3deg, transparent 3deg 18deg); -webkit-mask:radial-gradient(circle, transparent 18%, #000 20%, #000 48%, transparent 50%); mask:radial-gradient(circle, transparent 18%, #000 20%, #000 48%, transparent 50%); animation:nvFw 1.4s ease-out forwards; }
+.sep-navidad .f1 { left:10%; top:18%; } .sep-navidad .f2 { right:12%; top:12%; animation-delay:.5s; background:repeating-conic-gradient(#c8102e 0 3deg, transparent 3deg 18deg); } .sep-navidad .f3 { left:62%; top:58%; width:130px; height:130px; animation-delay:.9s; background:repeating-conic-gradient(#3ccf7a 0 3deg, transparent 3deg 18deg); }
+@keyframes nvFw { 0% { transform:scale(.2); opacity:1; } 80% { opacity:.9; } 100% { transform:scale(1.25); opacity:0; } }
+.sep-navidad .sep-logo { position:relative; } .sep-navidad .sep-logo .v { background:linear-gradient(135deg, #e3243f, #c8102e); }
+.sep-navidad .nv-gorro { position:absolute; left:-8px; top:-58px; width:0; height:0; border-left:44px solid transparent; border-right:44px solid transparent; border-bottom:70px solid #c8102e; transform:rotate(-18deg); filter:drop-shadow(0 6px 0 #fff); z-index:2; }
+.sep-navidad .nv-gorro::after { content:''; position:absolute; left:-12px; top:-12px; width:24px; height:24px; border-radius:50%; background:#fff; }
+.sep-navidad .sep-line { background:linear-gradient(90deg, transparent, #c8102e, #f4c542, #0f6b3a, transparent); }
+.sep-navidad .sep-sub { color:#fff; text-shadow:3px 3px 0 #c8102e; }
+.sep-navidad .nv-ed { position:relative; font:700 13px/1 system-ui, sans-serif; letter-spacing:4px; color:#f4c542; }
+.tvapp .sep-navidad .nv-fw { -webkit-mask:none; mask:none; background:radial-gradient(circle, transparent 30%, #f4c54288 32%, transparent 48%); }

@@ -52,8 +52,76 @@ const Nichos = (() => {
       ${x.note ? `<p>${esc(x.note)}</p>` : ''}</div></div>`;
   }
 
+
+  // 🌱 base inicial armada por Claude (rincones de Reddit tipo r/ObscureMedia y r/InternetIsBeautiful, archivos, discos de culto).
+  // Se suma una sola vez a tu base (después es toda tuya: editás o borrás lo que quieras). Discos: búsqueda en YouTube Music.
+  const YM = q => 'https://music.youtube.com/search?q=' + encodeURIComponent(q), W = t => 'https://es.wikipedia.org/wiki/' + t;
+  const SEED_V = 1, SEED = [
+    // 🎬 videos perdidos y archivos
+    ['video', 'A Trip Down Market Street (1906): San Francisco cuatro días antes del terremoto', 'https://archive.org/details/TripDown1905', 13, 2, 'Película filmada desde un tranvía. Mirá los autos, los chicos y la gente cruzando como si nada.'],
+    ['video', 'Powers of Ten (1977): un picnic y el universo en 10 minutos', 'https://www.youtube.com/watch?v=0fKBhvDjuy0', 9, 1, 'Corto de Charles y Ray Eames que cambia de escala de a 10 veces.'],
+    ['video', 'Hans Rosling: 200 países, 200 años, 4 minutos', 'https://www.youtube.com/watch?v=jbkSRLYSojo', 5, 1, 'La historia del mundo en un gráfico que se mueve.'],
+    ['video', 'Archivo DiFilm: noticieros y películas caseras de la Argentina del siglo XX', 'https://www.youtube.com/user/archivodichiara', 30, 2, 'El archivo fílmico privado más grande del país (Florencio Varela). Buscá tu barrio o un año.'],
+    ['video', 'Prelinger Archives: películas educativas y publicitarias viejas', 'https://archive.org/details/prelinger', 30, 3, 'Miles de cortos institucionales de los años 30 a 70, gratis y de dominio público.'],
+    ['video', 'Astronaut.io: videos de YouTube recién subidos con casi cero vistas', 'https://astronaut.io', 15, 3, 'Momentos de vidas ajenas: cumpleaños, ensayos, gente probando la cámara.'],
+    ['video', 'Petit Tube: un video al azar que casi nadie vio', 'https://www.petittube.com', 5, 3, 'Apretás y sale cualquier cosa. A veces es una joya.'],
+    ['video', 'Historias Innecesarias: archivo de la tele argentina con humor', 'https://www.youtube.com/results?search_query=Historias+Innecesarias', 15, 2, 'Rescates de la tele y la publicidad argentina de otras décadas.'],
+    ['video', 'r/ObscureMedia: lo más votado de todos los tiempos', 'https://www.reddit.com/r/ObscureMedia/top/?t=all', 30, 3, 'Videos caseros, comerciales raros y rarezas de la TV que la gente desenterró.'],
+    // 💿 discos raros o de culto
+    ['disco', 'Mort Garson – Mother Earth’s Plantasia (1976)', YM('Mort Garson Mother Earth\'s Plantasia'), 31, 2, 'Música electrónica hecha "para las plantas". Se regalaba con la compra de una planta.'],
+    ['disco', 'Hiroshi Yoshimura – Music for Nine Post Cards (1982)', YM('Hiroshi Yoshimura Music for Nine Post Cards'), 32, 3, 'Ambient japonés para un museo. Ideal para bajar un cambio.'],
+    ['disco', 'Moondog – Moondog (1969)', YM('Moondog 1969 album'), 33, 3, 'Un músico ciego que vivía en una esquina de Nueva York vestido de vikingo.'],
+    ['disco', 'Arthur Russell – World of Echo (1986)', YM('Arthur Russell World of Echo'), 72, 3, 'Chelo y voz con eco. Raro y hermoso.'],
+    ['disco', 'Linda Perhacs – Parallelograms (1970)', YM('Linda Perhacs Parallelograms'), 34, 3, 'Una dentista que grabó un solo disco de folk psicodélico y desapareció 30 años.'],
+    ['disco', 'Rodriguez – Cold Fact (1970)', YM('Rodriguez Cold Fact'), 33, 2, 'Fracasó en EE.UU. y fue enorme en Sudáfrica sin que él lo supiera.'],
+    ['disco', 'Shuggie Otis – Inspiration Information (1974)', YM('Shuggie Otis Inspiration Information'), 36, 2, 'Soul casero adelantado a su época.'],
+    ['disco', 'Os Mutantes – Os Mutantes (1968)', YM('Os Mutantes 1968'), 36, 2, 'Psicodelia brasileña del tropicalismo.'],
+    ['disco', 'Midori Takada – Through the Looking Glass (1983)', YM('Midori Takada Through the Looking Glass'), 41, 3, 'Percusión minimalista que resucitó gracias al algoritmo de YouTube.'],
+    ['disco', 'Agustín Pereyra Lucena – Agustín Pereyra Lucena (1970)', YM('Agustin Pereyra Lucena 1970'), 33, 3, 'Bossa nova hecha en Buenos Aires, joya poco conocida.'],
+    ['disco', 'Arco Iris – Sudamérica o el regreso a la aurora (1972)', YM('Arco Iris Sudamerica o el regreso a la aurora'), 75, 3, 'Ópera rock de Santaolalla y compañía, doble y conceptual.'],
+    ['disco', 'Aquelarre – Candiles (1972)', YM('Aquelarre Candiles'), 40, 3, 'Rock progresivo argentino de Héctor Starc y Emilio del Guercio.'],
+    ['disco', 'Invisible – El jardín de los presentes (1976)', YM('Invisible El jardin de los presentes'), 40, 2, 'Spinetta en su etapa más rara y fina.'],
+    ['disco', 'Billy Bond y La Pesada del Rock and Roll – Vol. 1 (1971)', YM('Billy Bond y La Pesada del Rock and Roll 1971'), 40, 3, 'La banda-zapada donde pasaron Spinetta, Pappo y Alejandro Medina.'],
+    ['disco', 'Manal – Manal (1970)', YM('Manal 1970 album'), 37, 2, 'El blues porteño fundacional.'],
+    ['disco', 'Raúl Porchetto – Reina Madre (1983)', YM('Raul Porchetto Reina Madre'), 40, 2, 'Disco grande de los 80 que hoy casi nadie pone.'],
+    // 📜 artículos viejos y casos raros
+    ['articulo', 'La epidemia de baile de 1518', W('Epidemia_de_baile_de_1518'), 7, 2, 'En Estrasburgo cientos de personas bailaron sin parar durante semanas.'],
+    ['articulo', 'La inundación de melaza de Boston (1919)', W('Inundaci%C3%B3n_de_melaza_de_Boston'), 7, 2, 'Una ola de melaza por las calles. Pasó de verdad.'],
+    ['articulo', 'La Gran Guerra del Emú (Australia, 1932)', 'https://en.wikipedia.org/wiki/Emu_War', 7, 2, 'El ejército contra las aves. Ganaron las aves.'],
+    ['articulo', 'La epidemia de risa de Tanganica (1962)', W('Epidemia_de_risa_de_Tanganica'), 5, 3, 'Una risa contagiosa que cerró escuelas durante meses.'],
+    ['articulo', 'El hackeo de Max Headroom (Chicago, 1987)', 'https://en.wikipedia.org/wiki/Max_Headroom_signal_hijacking', 10, 3, 'Alguien se metió en dos canales de TV con una máscara. Nunca lo encontraron.'],
+    ['articulo', 'Las baldosas de Toynbee', W('Baldosas_de_Toynbee'), 7, 3, 'Mensajes misteriosos incrustados en el asfalto de varias ciudades, incluida Buenos Aires.'],
+    ['articulo', 'La señal Wow! (1977)', W('Se%C3%B1al_Wow!'), 5, 2, 'La señal de radio del espacio que nadie pudo explicar.'],
+    ['articulo', 'El misterio del Mary Celeste', W('Mary_Celeste'), 7, 1, 'Un barco encontrado navegando solo, sin nadie a bordo.'],
+    ['articulo', 'El incidente del paso Diátlov', W('Incidente_del_paso_Di%C3%A1tlov'), 10, 2, 'Nueve excursionistas, una carpa cortada desde adentro.'],
+    ['articulo', 'Villa Epecuén: el pueblo que se tragó la laguna', W('Villa_Epecu%C3%A9n'), 7, 2, 'Un balneario bonaerense que quedó 25 años bajo el agua y hoy es un pueblo fantasma.'],
+    ['articulo', 'Rufina Cambaceres, la leyenda de la Recoleta', W('Rufina_Cambaceres'), 5, 2, 'La chica que habría sido enterrada viva en 1902.'],
+    ['articulo', 'La Difunta Correa', W('Difunta_Correa'), 5, 1, 'De dónde salen las botellas de agua al costado de las rutas.'],
+    ['articulo', 'Wikipedia: los artículos más raros', 'https://en.wikipedia.org/wiki/Wikipedia:Unusual_articles', 30, 2, 'La lista oficial de rarezas de Wikipedia. Pozo sin fondo.'],
+    ['articulo', 'Lost Media Wiki: lo que se perdió y se busca', 'https://lostmediawiki.com', 30, 3, 'Programas, juegos y películas perdidos, y cómo la gente los rastrea.'],
+    // 🦉 curiosidades
+    ['curio', 'Radio Garden: radios de todo el mundo girando un globo', 'https://radio.garden', 15, 1, 'Tocás un puntito y escuchás una radio de ese lugar, en vivo.'],
+    ['curio', 'Radiooooo: música por país y década', 'https://radiooooo.com', 30, 2, 'Elegís Japón 1970 o Argentina 1950 y suena lo de esa época.'],
+    ['curio', 'Drive & Listen: manejar por ciudades con su radio', 'https://drivenlisten.com', 15, 2, 'Un viaje en auto por Tokio o Buenos Aires con la radio local.'],
+    ['curio', 'WindowSwap: la ventana de otra persona en otro país', 'https://www.window-swap.com', 5, 2, 'Videos tranquilos desde ventanas de gente de todo el mundo.'],
+    ['curio', 'The Deep Sea: bajar hasta el fondo del océano', 'https://neal.fun/deep-sea/', 5, 1, 'Scrolleás y vas bajando metro a metro con los bichos de cada profundidad.'],
+    ['curio', 'La Biblioteca de Babel', 'https://libraryofbabel.info', 15, 3, 'La biblioteca infinita de Borges, hecha de verdad: contiene todo texto posible.'],
+    ['curio', 'Musicmap: el árbol genealógico de la música', 'https://musicmap.info', 15, 2, 'De dónde viene cada género, con ejemplos para escuchar.'],
+    ['curio', 'Earth: los vientos del planeta en vivo', 'https://earth.nullschool.net', 5, 2, 'Un globo que muestra el viento y las corrientes ahora mismo.'],
+    ['curio', 'Atlas Obscura: lugares raros del mundo (y de Argentina)', 'https://www.atlasobscura.com/things-to-do/argentina', 15, 1, 'Rincones extraños para conocer o soñar.'],
+    ['curio', 'One Terabyte of Kilobyte Age: la web de GeoCities', 'https://oneterabyteofkilobyteage.tumblr.com', 15, 3, 'Capturas de páginas caseras de los 90 que ya no existen.'],
+    ['curio', 'The Pudding: historias contadas con datos', 'https://pudding.cool', 15, 2, 'Ensayos visuales sobre música, idiomas, cine y cosas cotidianas.'],
+    ['curio', 'r/InternetIsBeautiful: lo más votado', 'https://www.reddit.com/r/InternetIsBeautiful/top/?t=all', 15, 1, 'Herramientas y páginas lindas que la gente fue encontrando.'],
+  ];
+  function seed() {
+    if ((+db.nichosSeed || 0) >= SEED_V) return;
+    const have = new Set(L().map(x => x.url)), now = Date.now();
+    SEED.forEach(([k, t, url, min, r, note], i) => { if (!have.has(url)) L().push({ id:'s' + SEED_V + '-' + i, url, t, k, min, r, note, by:'Sugerido por FUNVS', seen:0, last:0, at:now - i }); });
+    db.nichosSeed = SEED_V; save();
+  }
   function render() {
     const v = $('v-nichos'); if (!v) return;
+    seed();
     const F = f(), M = matches(F), all = L();
     const chips = (list, key) => list.map(([k, t]) => `<button class="chip ${F[key] === k ? 'on' : ''}" data-nf="${key}|${k}">${t}</button>`).join('');
     const shown = all.filter(x => !q || norm(x.t + ' ' + x.url + ' ' + (x.note || '') + ' ' + (x.by || '')).includes(norm(q)));

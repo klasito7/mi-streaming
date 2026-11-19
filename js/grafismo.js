@@ -68,11 +68,24 @@ const Grafismo = (() => {
   function separator(sub) {
     if (Date.now() - sepAt < 20e3) return; sepAt = Date.now();
     // cortina según la hora: de día cielo con nubes, de noche azul con estrellas; el día que juega Vélez, la V
+    if (document.body.classList.contains('gs-navidad26') && !document.body.classList.contains('velezday')) return sepNavidad(sub);
     const h = new Date().getHours(), dia = h >= 7 && h < 20, vd = document.body.classList.contains('velezday');
     const o = document.createElement('div'); o.className = 'sep ' + (vd ? 'sep-velez' : dia ? 'sep-dia' : 'sep-noche');
     const pet = (() => { try { const L = TV.pets(); return L[Math.floor(Math.random() * L.length)]; } catch { return 'img/vaca.jpg'; } })();
     o.innerHTML = `${dia && !vd ? '<i class="nube n1"></i><i class="nube n2"></i><i class="nube n3"></i>' : ''}${vd ? '<i class="sep-v">V</i>' : ''}<div class="sep-logo"><img src="${pet}" alt=""><span class="f">FUN</span><span class="v">VS</span></div><i class="sep-line"></i>${sub ? `<div class="sep-sub">${esc(sub)}</div>` : ''}`;
     document.body.appendChild(o); setTimeout(() => o.classList.add('out'), sub ? 2600 : 1900); setTimeout(() => o.remove(), sub ? 3200 : 2500);
+  }
+
+  // 🎄 separador de Navidad: noche de verano porteña con guirnalda, fuegos artificiales y el logo con gorrito
+  function sepNavidad(sub) {
+    const d = new Date(), m = d.getMonth(), day = d.getDate();
+    const titulo = m === 0 ? '¡Feliz 2027!' : (m === 11 && day >= 31) ? '¡Feliz 2027!' : (m === 11 && day >= 24 && day <= 25) ? '¡Feliz Navidad!' : 'Felices fiestas';
+    const o = document.createElement('div'); o.className = 'sep sep-navidad';
+    const pet = (() => { try { const L = TV.pets(); return L[Math.floor(Math.random() * L.length)]; } catch { return 'img/vaca.jpg'; } })();
+    o.innerHTML = `<i class="nv-luces"></i><i class="nv-fw f1"></i><i class="nv-fw f2"></i><i class="nv-fw f3"></i>
+      <div class="sep-logo"><span class="nv-gorro"></span><img src="${pet}" alt=""><span class="f">FUN</span><span class="v">VS</span></div>
+      <i class="sep-line"></i><div class="sep-sub">${sub ? esc(sub) : titulo}</div><small class="nv-ed">EDICIÓN NAVIDAD 2026</small>`;
+    document.body.appendChild(o); setTimeout(() => o.classList.add('out'), sub ? 2800 : 2300); setTimeout(() => o.remove(), sub ? 3400 : 2900);
   }
 
   function init() {

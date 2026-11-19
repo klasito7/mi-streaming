@@ -107,8 +107,13 @@ function initSettings() {
     $('setEdge').oninput = e => { Device.setEdge(e.target.value); $('setEdgeV').textContent = e.target.value + 'px'; }; }
   $('setLite').onchange = e => { Lite.set(e.target.checked); toast(e.target.checked ? '⚡ Modo liviano prendido en este aparato' : 'Modo liviano apagado', { ms:2500 }); };
   // 🎨 estilo del grafismo (se sincroniza)
-  const gs = () => { ['depo', 'vhs', 'mini'].forEach(k => document.body.classList.toggle('gs-' + k, db.grafStyle === k)); };
-  gs(); onChange(gs);
+  // 🎄 ediciones especiales por fecha: se pueden elegir mientras duran; del 1/12 al 6/1 la de Navidad sale sola si tenés el Clásico
+  const GS_ED = [{ k:'navidad26', nm:'🎄 Edición Navidad 2026', from:'2026-11-19T00:00:00-03:00', until:'2027-01-06T23:59:59-03:00', auto:'2026-12-01T00:00:00-03:00' }];
+  const edOn = e => Date.now() >= Date.parse(e.from) && Date.now() <= Date.parse(e.until);
+  const gsNow = () => { const ed = GS_ED.find(e => e.k === db.grafStyle); if (ed) return edOn(ed) ? ed.k : ''; if (!db.grafStyle) { const a = GS_ED.find(e => edOn(e) && e.auto && Date.now() >= Date.parse(e.auto)); if (a) return a.k; } return db.grafStyle || ''; };
+  const gs = () => { const k = gsNow(); ['depo', 'vhs', 'mini', ...GS_ED.map(e => e.k)].forEach(x => document.body.classList.toggle('gs-' + x, k === x)); document.body.classList.toggle('gs-ed', GS_ED.some(e => e.k === k)); };
+  gs(); onChange(gs); setInterval(gs, 30 * 60e3);
+  GS_ED.filter(edOn).forEach(e => { const o = document.createElement('option'); o.value = e.k; o.textContent = `${e.nm} (hasta el ${new Date(e.until).toLocaleDateString('es-AR', { day:'numeric', month:'numeric' })})`; $('setGs').appendChild(o); });
   $('setGs').value = db.grafStyle || '';
   $('setGs').onchange = e => { db.grafStyle = e.target.value; save(); gs(); try { Grafismo.barPop('🎨 ESTILO', `<b>${esc(e.target.selectedOptions[0].text)}</b> Así se ve el zócalo`, { ms:5000 }); } catch {} };
   // 📐 zona segura: el video deja libre arriba (donde van el cartel y el logo FUNVS)
