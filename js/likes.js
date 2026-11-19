@@ -18,7 +18,7 @@ const Likes = (() => {
       client.callback = r => {
         if (r.error) return rej(new Error(r.error_description || r.error));
         token = r.access_token; exp = Date.now() + (+r.expires_in || 3600) * 1000;
-        try { sessionStorage.setItem('ytTok', JSON.stringify({ token, exp })); } catch {}
+        try { localStorage.setItem('ytTok', JSON.stringify({ token, exp })); } catch {}
         paintAll(); res(token);
       };
       client.error_callback = e => rej(new Error(e && e.type === 'popup_closed' ? 'Cerraste la ventana de Google.' : 'No se pudo iniciar sesión con Google.'));
@@ -69,7 +69,7 @@ const Likes = (() => {
     $('dlgLike').showModal();
   }
   function init() {
-    try { const t = JSON.parse(sessionStorage.getItem('ytTok') || 'null'); if (t && t.exp > Date.now()) { token = t.token; exp = t.exp; } } catch {}
+    try { const t = JSON.parse(localStorage.getItem('ytTok') || 'null'); if (t && t.exp > Date.now()) { token = t.token; exp = t.exp; } } catch {}
     document.body.insertAdjacentHTML('beforeend', `
       <dialog id="dlgLike"><h3>👍 Conectar tu cuenta de YouTube para dar Me gusta</h3>
         <p>YouTube no deja dar like desde un video incrustado en otra página. Para hacerlo desde FUNVS, Google tiene que darle permiso a tu página. Se hace una sola vez (unos 5 minutos), en el mismo proyecto donde sacaste la clave de YouTube:</p>
@@ -94,5 +94,5 @@ const Likes = (() => {
       catch (e) { m.className = 'msg err'; m.textContent = e.message + ' Revisá que el origen autorizado sea exactamente ' + location.origin + ' y que tu Gmail esté como usuario de prueba.'; }
     };
   }
-  return { init, btn, status, openSetup, get connected() { return !!token; }, get ready() { return ready(); } };
+  return { init, btn, status, openSetup, api, connect:() => getToken(true), get connected() { return !!token && Date.now() < exp; }, get ready() { return ready(); } };
 })();

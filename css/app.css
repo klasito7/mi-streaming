@@ -2490,3 +2490,9 @@ body.gs-navidad26 .hud-logo::before { content:''; position:absolute; z-index:2; 
 .ytch img { width:64px; height:64px; border-radius:50%; object-fit:cover; flex:none; background:var(--panel2); } .ytch > div:nth-child(2) { flex:1; min-width:0; } .ytch b { display:block; } .ytch small { color:var(--mut); font-size:12px; }
 .ytch .btn { padding:6px 10px; border-radius:8px; background:var(--panel2); color:var(--txt); text-decoration:none; } .ytq { font-size:12px; margin-top:12px; }
 @media (max-width:560px) { .ytch { flex-wrap:wrap; } .ytch .btns { width:100%; } }
+.pschips button.on, .psporto button.on { background:#1238b5; color:#fff; border-color:#2f6bff; }
+.psporto { display:grid; grid-template-columns:repeat(3, 1fr); gap:8px; margin-top:6px; } .psporto button { display:grid; gap:2px; padding:10px 6px; font-weight:600; } .psporto button span { font-size:26px; }
+.pswhen { margin-top:12px; } .pswhen summary { cursor:pointer; color:var(--mut); font-size:13px; }
+#psMan.big { font-size:17px; padding:12px 18px; }
+.yttabs { margin-bottom:12px; } .ytmine { display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap; } .ytmine p { margin:0; }
+.ytnote { font-size:12px; margin:6px 0 12px; }

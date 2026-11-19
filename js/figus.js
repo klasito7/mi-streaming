@@ -106,7 +106,7 @@ const Figus = (() => {
     for (const e of evs) {
       if (e.ty === 'slot') { const d = ymdOf(e.t); day[d] = (day[d] || 0) + 1; if (day[d] <= ECO.slotCap) { coins++; earned.slot++; } lastSlot = Math.max(lastSlot, e.t); }
       else if (e.ty === 'daily') { coins += e.n; earned.daily += e.n; dailies.add(e.d); }
-      else if (e.ty === 'prode') { coins += e.n; earned.prode += e.n; }
+      else if (e.ty === 'prode' || e.ty === 'walk') { coins += e.n; earned.prode += e.n; }
       else if (e.ty === 'tok') toks[e.id] = e;
       else if (e.ty === 'pack') {
         if (e.tok) { if (!toks[e.tok]) continue; delete toks[e.tok]; }
@@ -304,6 +304,13 @@ const Figus = (() => {
   }
   const velezDay = () => { try { const m = Partido.match(); return !!m && new Date(m.date).toDateString() === new Date().toDateString(); } catch { return false; } };
   // 🐶 Paseo completado → 1 sobre de Vaca (5 figus)
+  // 🪙 vaccoins por paseo: 15 a 45 según lo largo, +0/+10/+20 según cómo se portó Vaca; hasta 2 paseos pagos por día
+  function walk(p) {
+    if (!p || p.min < 10) return 0;
+    const dia = new Date(p.s).toDateString(); if (st.ev.filter(e => e.ty === 'walk' && new Date(e.ps || e.t).toDateString() === dia).length >= 2) return 0;
+    const base = p.min >= 60 ? 45 : p.min >= 45 ? 35 : p.min >= 30 ? 25 : 15, extra = [0, 0, 10, 20][p.porto || 2], n = base + extra;
+    return add({ id:'w-' + p.s, ty:'walk', n, ps:p.s, m:`${p.min} min · ${['', 'se portó mal', 'se portó bien', 'se portó excelente'][p.porto || 2]}` }) ? (pushSoon(), n) : 0;
+  }
   function paseo(p) { if (!p || p.min < 15) return; if (add({ id:'v-' + p.s, ty:'tok', k:'vaca', why:`Paseo de ${p.min} min` })) toast('<b>🐶 ¡Sobre de Vaca!</b><small>Por el paseo. Abrilo en 🏛️ Colección.</small>', { cls:'info', ms:6000, onclick:() => { Nav.go('figus'); view = { tab:'inicio' }; render(); } }); }
 
   /* ---------------- 📦 sobres ---------------- */
@@ -556,8 +563,8 @@ const Figus = (() => {
       body = garageHtml();
     } else if (view.tab === 'balance') {
       const L = [...st.ev].sort((a, b) => b.t - a.t).filter(e => e.ty !== 'slot').slice(0, 40);
-      const ic = e => e.ty === 'trade' ? `🤝 Cambio con ${esc(e.nm || '')}: diste ${(e.give || []).length}${e.gvc ? ' + ' + e.gvc + ' vc' : ''}, recibiste ${(e.get || []).length}${e.rvc ? ' + ' + e.rvc + ' vc' : ''}` : e.ty === 'up' ? `🛍️ ${UPS[e.u]?.n || e.u} nivel ${e.lvl}` : e.ty === 'wk' ? '🗓️ Desafío de la semana cumplido' : e.ty === 'hag' ? '🤝 Regateaste' : e.ty === 'tno' ? '🤝 Rechazaste un cambio' : e.ty === 'stick' && !e.n ? '🂠 Pegaste una figu' : e.ty === 'stick' ? `🎯 ¡Pegado perfecto! (${e.acc}%)` : e.ty === 'cover' ? (String(e.d).startsWith('skin-') ? `🌴 Skin de FUNVS: ${esc(e.nm || e.d)}` : `🎨 Tapa nueva: ${COVERS[e.d] || e.d}`) : e.ty === 'exp' ? `🦴 Vaca salió a repartir a ${esc(e.dest)} (${e.h} h)` : e.ty === 'expok' ? `🦴 Volvió del reparto: +${e.rw?.vc || 0}${e.rw?.post ? ' · postal' : ''}${e.rw?.fig ? ' · figu' : ''}${e.rw?.part ? ' · repuesto' : ''}` : e.ty === 'blend' ? '🌀 Licuadora: 5 → 1 de rareza superior' : e.ty === 'ach' ? '🏅 Trofeo nuevo' : e.ty === 'part' ? `🔧 Piezas para el ${esc(modelOf(e.m)?.name || '')} (${(e.p || []).length})` : e.ty === 'win' ? `🏆 ${esc(modelOf(e.m)?.name || '')} ganó ${esc(e.gp)}` : e.ty === 'daily' ? `🎁 Regalo del día${e.s ? ` (racha ${e.s})` : ''}${e.off ? ` · +${e.off} mientras no estabas` : ''}` : e.ty === 'prode' ? `🔮 Prode: ${esc(e.m || '')}` : e.ty === 'pack' ? `📦 Sobre de ${esc(st.albums[e.a]?.name || '?')}${e.tok ? ' (regalo)' : ''}` : e.ty === 'buy' ? `🛒 Compraste #${esc(e.k.split(':')[1])} de ${esc(st.albums[e.k.split(':')[0]]?.name || '?')}` : e.ty === 'sell' ? '🔁 Vendiste una repetida' : e.ty === 'tok' ? `🎁 Sobre de ${e.k === 'vaca' ? 'Vaca' : 'Vélez'}: ${esc(e.why || '')}` : e.ty === 'done' ? `🏆 Completaste ${esc(st.albums[e.a]?.name || '')}` : e.ty;
-      const amt = e => e.ty === 'trade' ? [(e.rvc ? '+' + e.rvc : ''), (e.gvc ? '−' + e.gvc : '')].filter(Boolean).join(' ') : e.ty === 'up' ? `−${e.cost}` : e.ty === 'wk' ? `+${e.n}` : e.ty === 'stick' ? `+${e.n || 0}` : e.ty === 'cover' ? `−${e.cost}` : e.ty === 'expok' ? `+${e.rw?.vc || 0}` : e.ty === 'daily' || e.ty === 'prode' ? `+${e.n}` : e.ty === 'sell' ? `+${e.n}` : e.ty === 'pack' && !e.tok || e.ty === 'buy' || e.ty === 'part' ? `−${e.cost}` : '';
+      const ic = e => e.ty === 'walk' ? `🐾 Paseo con Vaca: ${esc(e.m || '')}` : e.ty === 'trade' ? `🤝 Cambio con ${esc(e.nm || '')}: diste ${(e.give || []).length}${e.gvc ? ' + ' + e.gvc + ' vc' : ''}, recibiste ${(e.get || []).length}${e.rvc ? ' + ' + e.rvc + ' vc' : ''}` : e.ty === 'up' ? `🛍️ ${UPS[e.u]?.n || e.u} nivel ${e.lvl}` : e.ty === 'wk' ? '🗓️ Desafío de la semana cumplido' : e.ty === 'hag' ? '🤝 Regateaste' : e.ty === 'tno' ? '🤝 Rechazaste un cambio' : e.ty === 'stick' && !e.n ? '🂠 Pegaste una figu' : e.ty === 'stick' ? `🎯 ¡Pegado perfecto! (${e.acc}%)` : e.ty === 'cover' ? (String(e.d).startsWith('skin-') ? `🌴 Skin de FUNVS: ${esc(e.nm || e.d)}` : `🎨 Tapa nueva: ${COVERS[e.d] || e.d}`) : e.ty === 'exp' ? `🦴 Vaca salió a repartir a ${esc(e.dest)} (${e.h} h)` : e.ty === 'expok' ? `🦴 Volvió del reparto: +${e.rw?.vc || 0}${e.rw?.post ? ' · postal' : ''}${e.rw?.fig ? ' · figu' : ''}${e.rw?.part ? ' · repuesto' : ''}` : e.ty === 'blend' ? '🌀 Licuadora: 5 → 1 de rareza superior' : e.ty === 'ach' ? '🏅 Trofeo nuevo' : e.ty === 'part' ? `🔧 Piezas para el ${esc(modelOf(e.m)?.name || '')} (${(e.p || []).length})` : e.ty === 'win' ? `🏆 ${esc(modelOf(e.m)?.name || '')} ganó ${esc(e.gp)}` : e.ty === 'daily' ? `🎁 Regalo del día${e.s ? ` (racha ${e.s})` : ''}${e.off ? ` · +${e.off} mientras no estabas` : ''}` : e.ty === 'prode' ? `🔮 Prode: ${esc(e.m || '')}` : e.ty === 'pack' ? `📦 Sobre de ${esc(st.albums[e.a]?.name || '?')}${e.tok ? ' (regalo)' : ''}` : e.ty === 'buy' ? `🛒 Compraste #${esc(e.k.split(':')[1])} de ${esc(st.albums[e.k.split(':')[0]]?.name || '?')}` : e.ty === 'sell' ? '🔁 Vendiste una repetida' : e.ty === 'tok' ? `🎁 Sobre de ${e.k === 'vaca' ? 'Vaca' : 'Vélez'}: ${esc(e.why || '')}` : e.ty === 'done' ? `🏆 Completaste ${esc(st.albums[e.a]?.name || '')}` : e.ty;
+      const amt = e => e.ty === 'walk' ? `+${e.n}` : e.ty === 'trade' ? [(e.rvc ? '+' + e.rvc : ''), (e.gvc ? '−' + e.gvc : '')].filter(Boolean).join(' ') : e.ty === 'up' ? `−${e.cost}` : e.ty === 'wk' ? `+${e.n}` : e.ty === 'stick' ? `+${e.n || 0}` : e.ty === 'cover' ? `−${e.cost}` : e.ty === 'expok' ? `+${e.rw?.vc || 0}` : e.ty === 'daily' || e.ty === 'prode' ? `+${e.n}` : e.ty === 'sell' ? `+${e.n}` : e.ty === 'pack' && !e.tok || e.ty === 'buy' || e.ty === 'part' ? `−${e.cost}` : '';
       body = `<div class="psstats"><div><b>${d.earned.slot}</b><small>por estar</small></div><div><b>${d.earned.daily}</b><small>regalos</small></div><div><b>${d.earned.prode}</b><small>Prode</small></div><div><b>${d.earned.sell}</b><small>ventas</small></div><div><b>${d.spent}</b><small>gastadas</small></div></div>
         <div class="tdlist">${L.map(e => `<div class="tdrow"><div><b>${ic(e)}</b><small>${new Date(e.t).toLocaleString('es-AR', { day:'numeric', month:'numeric', hour:'2-digit', minute:'2-digit' })}</small></div><b class="fgamt">${amt(e)}</b></div>`).join('') || '<div class="empty">Todavía no hay movimientos.</div>'}</div>`;
     }
@@ -1666,5 +1673,5 @@ const Figus = (() => {
   // 🛒 Market: skins de FUNVS pagados con vaccoins (quedan comprados para siempre, en todos los aparatos)
   const owns = k => derive().covers.has('skin-' + k);
   function buySkin(k, cost, nm) { if (owns(k)) return true; if (derive().coins < cost) return false; add({ id:'cv-skin-' + k, ty:'cover', d:'skin-' + k, cost, nm }); D = null; pushSoon(); return owns(k); }
-  return { init, render, paseo, back, tab:t => { view = { tab:t }; render(); }, ECO, get coins() { return derive().coins; }, owns, buySkin };
+  return { init, render, paseo, back, tab:t => { view = { tab:t }; render(); }, ECO, get coins() { return derive().coins; }, owns, buySkin, walk };
 })();

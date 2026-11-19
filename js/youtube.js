@@ -10,6 +10,50 @@ const YouTube = (() => {
   const DURS = [['', 'Cualquier duración'], ['short', 'Menos de 4 min'], ['medium', '4 a 20 min'], ['long', 'Más de 20 min']];
   const ORDS = [['relevance', 'Más relevantes'], ['date', 'Más nuevos'], ['viewCount', 'Más vistos']];
   let st = { q:'', tipo:'video', dur:'', ord:'relevance', items:[], next:'', loading:false, err:'' }, home = null;
+  let tab = S.get('ytTab', 'buscar'), feed = { subs:S.get('ytSubsFeed', null), likes:S.get('ytLikesFeed', null) }, fLoading = '', fErr = '';
+  const MINE = [['buscar', '🔎 Buscar'], ['subs', '🆕 Mis suscripciones'], ['likes', '👍 Mis me gusta']];
+  // 🆕 lo nuevo de tus suscripciones (últimos 7 días) y 👍 tus me gusta, con tu cuenta de Google
+  async function loadSubs(force) {
+    if (!force && feed.subs && Date.now() - feed.subs.at < 30 * 60e3) return;
+    fLoading = 'subs'; fErr = ''; render();
+    try {
+      let subs = S.get('ytSubs', null);
+      if (force || !subs || Date.now() - subs.at < 0 || Date.now() - subs.at > 24 * 3600e3) {
+        const L = []; let pt = '';
+        do { const j = await Likes.api(`subscriptions?part=snippet&mine=true&maxResults=50&order=relevance${pt ? '&pageToken=' + pt : ''}`); (j.items || []).forEach(x => L.push({ cid:x.snippet.resourceId.channelId, t:x.snippet.title })); pt = j.nextPageToken || ''; } while (pt && L.length < 500);
+        subs = { at:Date.now(), list:L }; S.set('ytSubs', subs);
+      }
+      const out = [], q = subs.list.slice(), cut = Date.now() - 7 * 864e5;
+      await Promise.all(Array.from({ length:8 }, async () => { for (let c; (c = q.shift());) {
+        try { const j = await Likes.api(`playlistItems?part=snippet,contentDetails&maxResults=4&playlistId=UU${c.cid.slice(2)}`);
+          for (const it of j.items || []) { const d = it.contentDetails?.videoPublishedAt || it.snippet.publishedAt; if (Date.parse(d) < cut || it.snippet.title === 'Private video') continue;
+            out.push({ k:'video', id:it.contentDetails.videoId, t:dec(it.snippet.title), ch:c.t, cid:c.cid, date:d }); } } catch {} } }));
+      out.sort((a, b) => Date.parse(b.date) - Date.parse(a.date)); const items = out.slice(0, 80);
+      for (let i = 0; i < items.length; i += 50) await details(items.slice(i, i + 50));
+      feed.subs = { at:Date.now(), items, n:subs.list.length }; S.set('ytSubsFeed', feed.subs);
+    } catch (e) { fErr = e.message === 'setup' ? 'setup' : niceErr(e.message || ''); }
+    fLoading = ''; render();
+  }
+  async function loadLikes(force) {
+    if (!force && feed.likes && Date.now() - feed.likes.at < 30 * 60e3) return;
+    fLoading = 'likes'; fErr = ''; render();
+    try { const j = await Likes.api('videos?part=snippet,contentDetails,statistics&myRating=like&maxResults=50');
+      feed.likes = { at:Date.now(), items:(j.items || []).map(v => ({ k:'video', id:v.id, t:v.snippet.title, ch:v.snippet.channelTitle, cid:v.snippet.channelId, date:v.snippet.publishedAt, dur:isoMin(v.contentDetails?.duration), views:+v.statistics?.viewCount || 0 })) };
+      S.set('ytLikesFeed', feed.likes);
+    } catch (e) { fErr = e.message === 'setup' ? 'setup' : niceErr(e.message || ''); }
+    fLoading = ''; render();
+  }
+  function mineHtml() {
+    const f = feed[tab], cuenta = Likes.ready;
+    const head = `<div class="ytmine"><p class="mut">${tab === 'subs' ? `Lo que subieron en los últimos 7 días los canales a los que estás suscripto${f?.n ? ` (${f.n})` : ''}.` : 'Los videos a los que les diste me gusta en YouTube.'}${f ? ` Actualizado ${ago(f.at)}.` : ''}</p>
+      <button data-ytrel>${f ? '↻ Actualizar' : '🔗 Conectar mi cuenta de YouTube'}</button></div>
+      <p class="mut ytnote">ℹ️ Los "recomendados" del Inicio de YouTube no se pueden traer: YouTube no deja que ninguna app de afuera lea tu Inicio ni tu historial. Lo más parecido es esto: lo nuevo de tus suscripciones y tus me gusta.</p>`;
+    if (!cuenta || fErr === 'setup') return head + `<div class="empty">Para usar tu cuenta hace falta conectarla una vez con Google (la misma conexión que usa el botón 👍 Me gusta). <button class="pri" data-ytsetup>Conectar</button></div>`;
+    if (fLoading === tab && !f) return head + '<div class="empty">Trayendo tus videos…</div>';
+    if (fErr) return head + `<div class="empty">⚠️ ${esc(fErr)}</div>`;
+    if (!f) return head;
+    return head + (f.items.length ? `<div class="grid ytgrid">${f.items.map(cardV).join('')}</div>` : '<div class="empty">No hay nada nuevo en los últimos 7 días.</div>');
+  }
   const cache = () => S.get('ytSearchCache', {});
   const hist = () => S.get('ytHist', []);
   const isoMin = d => { const m = String(d || '').match(/PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?/); if (!m) return ''; const h = +m[1] || 0, mi = +m[2] || 0, s = +m[3] || 0; return h ? `${h}:${String(mi).padStart(2, '0')}:${String(s).padStart(2, '0')}` : `${mi}:${String(s).padStart(2, '0')}`; };
@@ -71,7 +115,18 @@ const YouTube = (() => {
     const v = $('v-youtube'); if (!v) return;
     const qt = (() => { try { return Canales.quotaTotal(); } catch { return null; } })(), H = hist(), list = st.q ? st.items : (home?.items || []);
     const sel = (id, arr, val) => `<select id="${id}">${arr.map(([k, t]) => `<option value="${k}" ${val === k ? 'selected' : ''}>${t}</option>`).join('')}</select>`;
-    v.innerHTML = `<h2 class="sec">▶️ YouTube <small class="mut">buscá y mirá sin salir de FUNVS</small></h2>
+    const tabs = `<div class="tabs yttabs">${MINE.map(([k, t]) => `<button data-ytm="${k}" class="${tab === k ? 'on' : ''}">${t}</button>`).join('')}</div>`;
+    if (tab !== 'buscar') {
+      const L = feed[tab]?.items || [];
+      v.innerHTML = `<h2 class="sec">▶️ YouTube <small class="mut">tu cuenta adentro de FUNVS</small></h2>${tabs}${mineHtml()}`;
+      v.querySelectorAll('[data-ytm]').forEach(b => b.onclick = () => { tab = b.dataset.ytm; S.set('ytTab', tab); fErr = ''; render(); });
+      v.querySelector('[data-ytrel]')?.addEventListener('click', async () => { try { if (!Likes.connected) await Likes.connect(); } catch (e) { fErr = e.message === 'setup' ? 'setup' : niceErr(e.message || ''); return render(); } tab === 'subs' ? loadSubs(true) : loadLikes(true); });
+      v.querySelector('[data-ytsetup]')?.addEventListener('click', () => Likes.openSetup());
+      v.querySelectorAll('[data-ytv]').forEach(c => { const go = () => play(L[+c.dataset.ytv]); c.onclick = go; c.onkeydown = e => { if (e.key === 'Enter') go(); }; });
+      if (Likes.ready && Likes.connected && !fLoading && !fErr && (!feed[tab] || Date.now() - feed[tab].at > 30 * 60e3)) tab === 'subs' ? loadSubs() : loadLikes();
+      return;
+    }
+    v.innerHTML = `<h2 class="sec">▶️ YouTube <small class="mut">buscá y mirá sin salir de FUNVS</small></h2>${tabs}
       <form class="ytbar" id="ytForm"><input id="ytQ" type="search" placeholder="Buscar en YouTube…" value="${esc(st.q)}" autocomplete="off" enterkeyhint="search"><button class="pri" type="submit">🔎 Buscar</button></form>
       <div class="ytfil"><div class="chips">${TIPOS.map(([k, t]) => `<button class="chip ${st.tipo === k ? 'on' : ''}" data-ytt="${k}">${t}</button>`).join('')}</div>
         ${st.tipo !== 'channel' ? sel('ytDur', DURS, st.dur) : ''}${sel('ytOrd', ORDS, st.ord)}</div>
@@ -86,6 +141,7 @@ const YouTube = (() => {
     if (!st.q && !home && db.key) loadHome().then(() => { if (Nav.current === 'youtube' && !st.q) render(); });
   }
   function bind(v, list) {
+    v.querySelectorAll('[data-ytm]').forEach(b => b.onclick = () => { tab = b.dataset.ytm; S.set('ytTab', tab); fErr = ''; render(); });
     $('ytForm').onsubmit = e => { e.preventDefault(); st.q = $('ytQ').value.trim(); st.items = []; st.next = ''; $('ytQ').blur(); search(); };
     v.querySelectorAll('[data-ytt]').forEach(b => b.onclick = () => { st.tipo = b.dataset.ytt; st.items = []; st.next = ''; st.q ? search() : render(); });
     $('ytDur')?.addEventListener('change', e => { st.dur = e.target.value; st.items = []; if (st.q) search(); });
@@ -98,6 +154,6 @@ const YouTube = (() => {
     v.querySelectorAll('[data-ytc]').forEach(b => b.onclick = () => addChannel(list[+b.dataset.ytc]));
   }
   // desde el buscador general (🔎) o el control del celu
-  function find(q) { st.q = q; st.items = []; st.next = ''; Nav.go('youtube'); search(); }
+  function find(q) { tab = 'buscar'; st.q = q; st.items = []; st.next = ''; Nav.go('youtube'); search(); }
   return { render, find };
 })();
