@@ -69,10 +69,50 @@ const Musica = (() => {
   }
 
   /* ---------- Pantalla ---------- */
+  /* ---------- 🔎 Buscar en YouTube Music (temas y álbumes/playlists) con tu clave de YouTube ---------- */
+  let ms = { q:'', tipo:'tema', items:[], loading:false, err:'' };
+  const dec = x => { const t = document.createElement('textarea'); t.innerHTML = x || ''; return t.value; };
+  async function buscar() {
+    const q = ms.q.trim(); if (!q) return render();
+    if (!db.key) { ms.err = 'Para buscar hace falta tu clave de YouTube (Ajustes → Contenido → YouTube y cuota).'; return render(); }
+    const ck = ms.tipo + '|' + q.toLowerCase(), C = S.get('muSearch', {});
+    if (C[ck] && Date.now() - C[ck].at < 6 * 3600e3) { ms.items = C[ck].items; ms.err = ''; return render(); }
+    ms.loading = true; ms.err = ''; render();
+    try {
+      const j = await Canales.yt('search', ms.tipo === 'tema'
+        ? { part:'snippet', type:'video', videoCategoryId:'10', q, maxResults:20, regionCode:'AR' }
+        : { part:'snippet', type:'playlist', q:q + ' álbum', maxResults:20, regionCode:'AR' });
+      ms.items = (j.items || []).map(r => ({ id:r.id.videoId || r.id.playlistId, kind:r.id.videoId ? 'video' : 'playlist', t:dec(r.snippet.title), by:dec(r.snippet.channelTitle).replace(/ - Topic$/, ''), thumb:r.snippet.thumbnails?.medium?.url || r.snippet.thumbnails?.default?.url || '' })).filter(x => x.id);
+      C[ck] = { at:Date.now(), items:ms.items }; const ks = Object.keys(C).sort((a, b) => C[b].at - C[a].at).slice(0, 15); S.set('muSearch', Object.fromEntries(ks.map(k => [k, C[k]])));
+    } catch (e) { ms.err = niceErr(e.message || 'No se pudo buscar'); }
+    ms.loading = false; render();
+  }
+  const asItem = x => ({ id:'s-' + x.id, kind:x.kind, ref:x.id, name:x.t, by:x.by, thumb:x.thumb });
+  function searchHtml() {
+    const temas = ms.items.filter(x => x.kind === 'video');
+    return `<div class="box musearch"><form id="muSForm" class="rsearch" style="margin:0"><input id="muQ" type="search" placeholder="🔎 Buscar en YouTube Music: un tema, un artista, un disco…" value="${esc(ms.q)}" enterkeyhint="search"><button class="pri">Buscar</button></form>
+      <div class="chips" style="margin-top:8px"><button class="chip ${ms.tipo === 'tema' ? 'on' : ''}" data-mst="tema">🎵 Temas</button><button class="chip ${ms.tipo === 'album' ? 'on' : ''}" data-mst="album">💿 Álbumes y playlists</button>${ms.q ? '<button class="chip" data-msx>✕ Limpiar</button>' : ''}</div>
+      ${ms.err ? `<p class="msg err">${esc(ms.err)}</p>` : ms.loading ? '<p class="mut">Buscando…</p>' : ''}
+      ${ms.items.length ? `${temas.length > 1 ? '<div class="btns" style="margin-top:8px"><button data-msall>▶ Escuchar todos estos temas</button></div>' : ''}
+        <div class="musres">${ms.items.map((x, i) => `<div class="musr"><div class="mucover sm" style="background-image:url('${esc(x.thumb)}')"></div><div class="musrt"><b>${esc(x.t)}</b><small>${x.kind === 'video' ? '🎵 Tema' : '💿 Álbum o playlist'} · ${esc(x.by)}</small></div>
+          <button class="pri" data-msp="${i}" title="Escuchar">▶</button><button data-msa="${i}" title="Guardar en mi música" ${db.music.items.some(it => it.ref === x.id) ? 'disabled' : ''}>${db.music.items.some(it => it.ref === x.id) ? '✓' : '➕'}</button></div>`).join('')}</div>`
+        : ms.q && !ms.loading && !ms.err ? '<p class="mut">No encontré nada con eso.</p>' : ''}
+      <p class="mut" style="font-size:12px;margin:8px 0 0">Cada búsqueda nueva gasta 100 de tu cuota de YouTube; las repetidas se guardan 6 horas. Suena con tu sesión de YouTube (Premium sin anuncios si la tenés iniciada).</p></div>`;
+  }
+  function bindSearch(v) {
+    $('muSForm').onsubmit = e => { e.preventDefault(); ms.q = $('muQ').value.trim(); ms.items = []; $('muQ').blur(); buscar(); };
+    v.querySelectorAll('[data-mst]').forEach(b => b.onclick = () => { ms.tipo = b.dataset.mst; ms.items = []; ms.q ? buscar() : render(); });
+    v.querySelector('[data-msx]')?.addEventListener('click', () => { ms = { q:'', tipo:ms.tipo, items:[], loading:false, err:'' }; render(); });
+    v.querySelectorAll('[data-msp]').forEach(b => b.onclick = () => play(asItem(ms.items[+b.dataset.msp])));
+    v.querySelectorAll('[data-msa]').forEach(b => b.onclick = () => { const x = ms.items[+b.dataset.msa]; db.music.items.unshift({ ...asItem(x), id:uid() }); save(); toast(`<b>➕ Guardado en tu música</b><small>${esc(x.t)}</small>`, { ms:2500 }); render(); });
+    v.querySelector('[data-msall]')?.addEventListener('click', () => { const T = ms.items.filter(x => x.kind === 'video'); play({ id:'s-all-' + Date.now(), kind:'list', ids:T.map(x => x.id), name:'Búsqueda: ' + ms.q, thumb:T[0]?.thumb || '' }); });
+  }
+  function find(q) { ms.q = q; ms.items = []; Nav.go('musica'); buscar(); }
+
   function render() {
     const v = $('v-musica');
     loadAlbum();
-    v.innerHTML = albumCard() + `
+    v.innerHTML = albumCard() + searchHtml() + `
       <div class="box">
         <form id="muForm" class="rsearch" style="margin:0">
           <input id="muUrl" placeholder="Pegá un link de YouTube Music: playlist, álbum o tema">
@@ -100,7 +140,7 @@ const Musica = (() => {
       await info(it);
       db.music.items.unshift(it); save(); render();
     };
-    albumClicks(v);
+    albumClicks(v); bindSearch(v);
     v.querySelectorAll('[data-del]').forEach(b => b.onclick = ev => { ev.stopPropagation(); db.music.items = db.music.items.filter(i => i.id !== b.dataset.del); save(); render(); });
     v.querySelectorAll('[data-mu]').forEach(c => c.onclick = () => { const it = db.music.items.find(i => i.id === c.dataset.mu); if (cur && cur.id === it.id && p) toggle(); else play(it); });
   }
@@ -266,5 +306,5 @@ const Musica = (() => {
     });
     onChange(() => { if (Nav.current === 'musica') render(); });
   }
-  return { stop, skip:d => { try { d > 0 ? p.nextVideo() : p.previousVideo(); } catch {} }, album:() => { loadAlbum(); return album; }, playAlbum:() => album && play(albumItem(album)), time:() => { try { return p.getCurrentTime(); } catch { return 0; } }, init, render, play, get current() { return cur; }, get track() { return track; }, get playing() { return st() === 1; } };
+  return { find, stop, skip:d => { try { d > 0 ? p.nextVideo() : p.previousVideo(); } catch {} }, album:() => { loadAlbum(); return album; }, playAlbum:() => album && play(albumItem(album)), time:() => { try { return p.getCurrentTime(); } catch { return 0; } }, init, render, play, get current() { return cur; }, get track() { return track; }, get playing() { return st() === 1; } };
 })();
