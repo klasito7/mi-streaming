@@ -61,6 +61,6 @@ await Promise.all(YT.map(async ([name, hs]) => {
   }
 }));
 const vs = new Set();
-const VIDS = [...vids, ...(prev.vids || [])].sort((a, b) => b.date - a.date).filter(v => !vs.has(v.id) && vs.add(v.id) && Date.now() - v.date < 40 * 864e5).slice(0, 80);
+const VIDS = [...vids, ...(prev.vids || [])].sort((a, b) => b.date - a.date).filter(v => !['VectorTV', 'Vectorrp'].includes(v.h) && !vs.has(v.id) && vs.add(v.id) && Date.now() - v.date < 40 * 864e5).slice(0, 80);
 await writeFile(dir + '/gta6.json', JSON.stringify({ updated:new Date().toISOString(), news:NEWS, vids:VIDS, chans, fuentes }));
 console.log(`Especial GTA VI: ${NEWS.length} noticias (${JSON.stringify(fuentes)}), ${VIDS.length} videos, canales ${Object.keys(chans).length}`);
