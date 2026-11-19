@@ -2479,3 +2479,14 @@ body.gs-navidad26 .hud-logo::before { content:''; position:absolute; z-index:2; 
 .sep-navidad .sep-sub { color:#fff; text-shadow:3px 3px 0 #c8102e; }
 .sep-navidad .nv-ed { position:relative; font:700 13px/1 system-ui, sans-serif; letter-spacing:4px; color:#f4c542; }
 .tvapp .sep-navidad .nv-fw { -webkit-mask:none; mask:none; background:radial-gradient(circle, transparent 30%, #f4c54288 32%, transparent 48%); }
+/* ▶️ YouTube adentro de FUNVS */
+.ytbar { display:flex; gap:8px; margin-bottom:10px; } .ytbar input { flex:1; min-width:0; font-size:17px; padding:11px 14px; border-radius:12px; }
+.ytfil { display:flex; flex-wrap:wrap; gap:8px; align-items:center; margin-bottom:10px; } .ytfil .chips { display:flex; gap:6px; flex-wrap:wrap; } .ytfil select { width:auto; }
+.ythist { display:flex; flex-wrap:wrap; gap:6px; align-items:center; margin-bottom:10px; }
+.ytsub { margin:14px 0 10px; font-size:16px; display:flex; align-items:center; gap:10px; }
+.ytdur { position:absolute; right:6px; bottom:6px; background:#000c; color:#fff; font:600 12px/1 system-ui, sans-serif; padding:3px 5px; border-radius:4px; }
+.ytt { padding:9px 11px; display:grid; gap:4px; } .ytt b { font-size:14px; line-height:1.3; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; } .ytt small { color:var(--mut); font-size:12px; }
+.ytchs { display:grid; gap:8px; } .ytch { display:flex; gap:12px; align-items:center; padding:10px 12px; border-radius:12px; background:var(--panel); border:1px solid var(--line); }
+.ytch img { width:64px; height:64px; border-radius:50%; object-fit:cover; flex:none; background:var(--panel2); } .ytch > div:nth-child(2) { flex:1; min-width:0; } .ytch b { display:block; } .ytch small { color:var(--mut); font-size:12px; }
+.ytch .btn { padding:6px 10px; border-radius:8px; background:var(--panel2); color:var(--txt); text-decoration:none; } .ytq { font-size:12px; margin-top:12px; }
+@media (max-width:560px) { .ytch { flex-wrap:wrap; } .ytch .btns { width:100%; } }
