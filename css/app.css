@@ -2545,3 +2545,42 @@ body.fseekon:not(.tvlock) main { padding-bottom:calc(var(--padb, 70px) + 26px); 
 .inalb.odin small { color:#9fbaff; }
 @media (max-width:760px) { .odgrid { grid-template-columns:1fr; } .odgrid > .odcol:not(.box) { order:-1; } .odprox { margin-left:0; width:100%; } .odhero { padding:18px 14px 14px; } }
 .dev-tv .odarch { grid-template-columns:repeat(4, 1fr); }
+
+/* ---------- 🏆 Tierlist (Jugar → Tierlist) ---------- */
+.tltabs { margin-bottom:12px; }
+.tlbar { display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
+.tlbar input { flex:1; min-width:200px; font-size:16px; padding:9px 12px; }
+.tlhint { color:#9fbaff; margin:0 0 8px; font-size:14px; }
+.tlboard { display:flex; flex-direction:column; gap:4px; margin-top:12px; background:#0b0c10; border:1px solid var(--line); border-radius:12px; padding:4px; }
+.tlrowwrap { display:grid; grid-template-columns:96px 1fr auto; min-height:84px; background:var(--panel); border-radius:8px; overflow:hidden; }
+.tllab { display:grid; place-items:center; padding:4px; }
+.tllab input { width:100%; background:transparent; border:none; text-align:center; color:inherit; font-weight:800; font-size:22px; padding:2px; }
+.tllab input:focus { background:#ffffff55; outline:none; }
+.tlrow { display:flex; flex-wrap:wrap; gap:4px; padding:4px; align-content:flex-start; min-height:80px; transition:background .15s; }
+.tlrow.tlover { background:#1d4fd833; box-shadow:inset 0 0 0 2px var(--velez); }
+.tltools { display:flex; flex-direction:column; gap:2px; padding:4px; justify-content:center; }
+.tltools button { padding:2px 7px; font-size:12px; background:transparent; }
+.tladdrow { margin:6px 0 12px; }
+.tlitem { position:relative; width:76px; height:76px; border-radius:6px; background:#1f222b center/cover no-repeat; cursor:grab; touch-action:none; user-select:none; flex:none; border:2px solid transparent; }
+.tlitem.txt { display:grid; place-items:center; padding:4px; text-align:center; font-size:12px; font-weight:700; line-height:1.15; overflow:hidden; background:linear-gradient(135deg, #1d4fd8, #0b0c10); color:#fff; }
+.tlitem.sel { border-color:#fff; box-shadow:0 0 0 3px var(--velez); }
+.tlitem.tldrag { opacity:.3; }
+.tlghost { position:fixed; z-index:9999; pointer-events:none; opacity:.9; transform:scale(1.08); box-shadow:0 8px 24px #000a; }
+.tlx { position:absolute; top:-8px; right:-8px; width:24px; height:24px; padding:0; border-radius:50%; background:#ff3b3b; border-color:#ff3b3b; color:#fff; font-size:12px; line-height:1; }
+.tlpoolbox { margin-top:4px; }
+.tlpoolhead { display:flex; flex-wrap:wrap; gap:8px; align-items:center; justify-content:space-between; margin-bottom:8px; }
+.tlpoolhead .btns { display:flex; flex-wrap:wrap; gap:6px; }
+.tlpoolhead label.btn { display:inline-flex; align-items:center; padding:7px 11px; border-radius:8px; background:var(--panel2); border:1px solid var(--line); color:var(--txt); cursor:pointer; }
+.tlpool { min-height:96px; border:2px dashed var(--line); border-radius:10px; }
+.tlempty { padding:12px; font-size:14px; }
+.tlnote { font-size:12px; margin-top:10px; }
+.tlgal { display:grid; grid-template-columns:repeat(auto-fill, minmax(220px, 1fr)); gap:10px; }
+.tlcard { display:flex; flex-direction:column; align-items:flex-start; gap:3px; padding:8px; text-align:left; }
+.tlcard span { width:100%; aspect-ratio:16/10; border-radius:6px; background:#0b0c10 top center/cover no-repeat; margin-bottom:4px; }
+.tlcard small { color:var(--mut); }
+.tlview { position:fixed; inset:0; z-index:9000; background:#000c; display:grid; place-items:center; padding:14px; }
+.tlvbox { background:var(--panel); border:1px solid var(--line); border-radius:14px; padding:12px; max-width:min(1100px, 100%); max-height:100%; display:flex; flex-direction:column; gap:10px; overflow:auto; }
+.tlvhead { display:flex; gap:10px; align-items:center; } .tlvhead b { font-size:18px; } .tlvhead button { margin-left:auto; }
+.tlvbox img { width:100%; height:auto; border-radius:8px; }
+.tlvbox .btns { display:flex; gap:8px; flex-wrap:wrap; }
+@media (max-width:600px) { .tlrowwrap { grid-template-columns:62px 1fr auto; min-height:70px; } .tllab input { font-size:18px; } .tlitem { width:60px; height:60px; } .tlrow { min-height:66px; } }
