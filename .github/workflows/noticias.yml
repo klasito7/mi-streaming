@@ -70,6 +70,10 @@ jobs:
         env:
           GIST_ID: ${{ secrets.GIST_ID || vars.GIST_ID }}
           YT_KEY: ${{ secrets.YT_KEY }}
+      - name: Especial GTA VI (noticias de portales gamers y videos de youtubers, hasta el 19/12)
+        continue-on-error: true
+        timeout-minutes: 3
+        run: node scripts/fetch-gta6.mjs /tmp/datos
       - name: Vivos escondidos de tus canales (24/7 que no aparecen entre los últimos videos)
         continue-on-error: true
         timeout-minutes: 3

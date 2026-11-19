@@ -12,7 +12,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;700&family=VT323&display=swap">
-<link rel="stylesheet" href="css/app.css?v=160">
+<link rel="stylesheet" href="css/app.css?v=161">
 </head>
 <body>
 <header>
@@ -79,6 +79,7 @@
   <section class="view" id="v-fechas"></section>
   <section class="view" id="v-tandas"></section>
   <section class="view" id="v-nichos"></section>
+  <section class="view" id="v-gta6"></section>
   <section class="view" id="v-fragotime"></section>
   <section class="view" id="v-novelas"></section>
   <section class="view" id="v-momentos"></section>
@@ -139,6 +140,7 @@
   <p style="margin-top:2px">En Twitch se aplica la calidad elegida. YouTube y Kick ajustan la calidad solos según tu conexión.</p>
   </div></details>
   <details class="sgrp" data-sg="pantalla"><summary><span>🎨</span><b>Pantalla</b><small>YouTube sin barra, efecto de tele, grafismo, Pantalla TV</small></summary><div class="sgbody">
+  <label>🎨 Skin de FUNVS <small class="mut">(se consiguen en Colección → 🛒 Market)</small></label><select id="setSkin" style="width:auto"></select>
   <label style="display:flex;gap:6px;align-items:center;color:var(--txt)"><input type="checkbox" id="setYtClean" style="width:auto"> 🧼 Ocultar la barra y el título de YouTube (se maneja con los botones de FUNVS)</label>
   <label style="display:flex;gap:6px;align-items:center;color:var(--txt)"><input type="checkbox" id="setZfx" style="width:auto"> 📺 Efecto de tele vieja al cambiar de canal</label>
   <label style="display:flex;gap:6px;align-items:center;color:var(--txt);margin-left:24px"><input type="checkbox" id="setZfxS" style="width:auto"> con ruido de estática</label>
@@ -218,60 +220,62 @@
   <div class="btns"><span class="sp"></span><button data-close>Cancelar</button><button class="pri" id="setSave">Guardar</button></div>
 </dialog>
 
-<script src="js/lite.js?v=160"></script>
-<script src="js/core.js?v=160"></script>
-<script src="js/player.js?v=160"></script>
-<script src="js/guia.js?v=160"></script>
-<script src="js/canales.js?v=160"></script>
-<script src="js/radiogrilla.js?v=160"></script>
-<script src="js/radio.js?v=160"></script>
-<script src="js/clasicos.js?v=160"></script>
-<script src="js/retro.js?v=160"></script>
-<script src="js/fulbito.js?v=160"></script>
-<script src="js/actualidad.js?v=160"></script>
-<script src="js/noticias.js?v=160"></script>
-<script src="js/velez.js?v=160"></script>
-<script src="js/calendario.js?v=160"></script>
-<script src="js/motor.js?v=160"></script>
-<script src="js/musica.js?v=160"></script>
-<script src="js/prode.js?v=160"></script>
-<script src="js/momentos.js?v=160"></script>
-<script src="js/stats.js?v=160"></script>
-<script src="js/tv.js?v=160"></script>
-<script src="js/zapping.js?v=160"></script>
-<script src="js/teclado.js?v=160"></script>
-<script src="js/zocalos.js?v=160"></script>
-<script src="js/calidad.js?v=160"></script>
-<script src="js/rap.js?v=160"></script>
-<script src="js/diario420.js?v=160"></script>
-<script src="js/time420.js?v=160"></script>
-<script src="js/likes.js?v=160"></script>
-<script src="js/boxeo.js?v=160"></script>
-<script src="js/series.js?v=160"></script>
-<script src="js/resumenes.js?v=160"></script>
-<script src="js/telegram.js?v=160"></script>
-<script src="js/ver.js?v=160"></script>
-<script src="js/juegos.js?v=160"></script>
-<script src="js/inicio.js?v=160"></script>
-<script src="js/vaca.js?v=160"></script>
-<script src="js/figus.js?v=160"></script>
-<script src="js/humor.js?v=160"></script>
-<script src="js/dia.js?v=160"></script>
-<script src="js/mg.js?v=160"></script>
-<script src="js/porteno.js?v=160"></script>
-<script src="js/reloj.js?v=160"></script>
-<script src="js/buscar.js?v=160"></script>
-<script src="js/avisos.js?v=160"></script>
-<script src="js/partido.js?v=160"></script>
-<script src="js/infobar.js?v=160"></script>
-<script src="js/grafismo.js?v=160"></script>
-<script src="js/control.js?v=160"></script>
-<script src="js/tanda.js?v=160"></script>
-<script src="js/nichos.js?v=160"></script>
-<script src="js/fragotime.js?v=160"></script>
-<script src="js/novelas.js?v=160"></script>
-<script src="js/flash420.js?v=160"></script>
-<script src="js/main.js?v=160"></script>
-<script src="js/app.js?v=160"></script>
+<script src="js/lite.js?v=161"></script>
+<script src="js/core.js?v=161"></script>
+<script src="js/player.js?v=161"></script>
+<script src="js/guia.js?v=161"></script>
+<script src="js/canales.js?v=161"></script>
+<script src="js/radiogrilla.js?v=161"></script>
+<script src="js/radio.js?v=161"></script>
+<script src="js/clasicos.js?v=161"></script>
+<script src="js/retro.js?v=161"></script>
+<script src="js/fulbito.js?v=161"></script>
+<script src="js/actualidad.js?v=161"></script>
+<script src="js/noticias.js?v=161"></script>
+<script src="js/velez.js?v=161"></script>
+<script src="js/calendario.js?v=161"></script>
+<script src="js/motor.js?v=161"></script>
+<script src="js/musica.js?v=161"></script>
+<script src="js/prode.js?v=161"></script>
+<script src="js/momentos.js?v=161"></script>
+<script src="js/stats.js?v=161"></script>
+<script src="js/tv.js?v=161"></script>
+<script src="js/zapping.js?v=161"></script>
+<script src="js/teclado.js?v=161"></script>
+<script src="js/zocalos.js?v=161"></script>
+<script src="js/calidad.js?v=161"></script>
+<script src="js/rap.js?v=161"></script>
+<script src="js/diario420.js?v=161"></script>
+<script src="js/time420.js?v=161"></script>
+<script src="js/likes.js?v=161"></script>
+<script src="js/boxeo.js?v=161"></script>
+<script src="js/series.js?v=161"></script>
+<script src="js/resumenes.js?v=161"></script>
+<script src="js/telegram.js?v=161"></script>
+<script src="js/ver.js?v=161"></script>
+<script src="js/juegos.js?v=161"></script>
+<script src="js/inicio.js?v=161"></script>
+<script src="js/vaca.js?v=161"></script>
+<script src="js/figus.js?v=161"></script>
+<script src="js/skins.js?v=161"></script>
+<script src="js/gta6.js?v=161"></script>
+<script src="js/humor.js?v=161"></script>
+<script src="js/dia.js?v=161"></script>
+<script src="js/mg.js?v=161"></script>
+<script src="js/porteno.js?v=161"></script>
+<script src="js/reloj.js?v=161"></script>
+<script src="js/buscar.js?v=161"></script>
+<script src="js/avisos.js?v=161"></script>
+<script src="js/partido.js?v=161"></script>
+<script src="js/infobar.js?v=161"></script>
+<script src="js/grafismo.js?v=161"></script>
+<script src="js/control.js?v=161"></script>
+<script src="js/tanda.js?v=161"></script>
+<script src="js/nichos.js?v=161"></script>
+<script src="js/fragotime.js?v=161"></script>
+<script src="js/novelas.js?v=161"></script>
+<script src="js/flash420.js?v=161"></script>
+<script src="js/main.js?v=161"></script>
+<script src="js/app.js?v=161"></script>
 </body>
 </html>

@@ -347,8 +347,8 @@ const Figus = (() => {
   /* ---------------- 🖥️ pantalla ---------------- */
   let view = { tab:'inicio' }, work = null;
   // 5 grupos arriba; adentro, pestañitas
-  const TABS = [['inicio', '🏠 Inicio'], ['albumes', '📚 Álbumes'], ['cambios', '🤝 Cambios'], ['garage', '🏎️ Garage'], ['expe', '🦴 Expediciones'], ['licua', '🌀 Licuadora'], ['gancho', '🧸 Gancho'], ['vitrina', '🏛️ Vitrina'], ['fabrica', '🏭 Fábrica'], ['trofeos', '🏆 Trofeos'], ['kiosco', '🏪 Kiosco'], ['repes', '🔁 Repetidas'], ['balance', '📒 Balance']];
-  const GRUPOS = [['inicio', '🏠 Inicio', ['inicio']], ['albumes', '📚 Álbumes', ['albumes', 'fabrica', 'repes', 'vitrina']], ['jugar', '🎲 Jugar', ['kiosco', 'cambios', 'gancho', 'licua']],
+  const TABS = [['inicio', '🏠 Inicio'], ['albumes', '📚 Álbumes'], ['cambios', '🤝 Cambios'], ['garage', '🏎️ Garage'], ['expe', '🦴 Expediciones'], ['licua', '🌀 Licuadora'], ['gancho', '🧸 Gancho'], ['vitrina', '🏛️ Vitrina'], ['fabrica', '🏭 Fábrica'], ['market', '🛒 Market'], ['trofeos', '🏆 Trofeos'], ['kiosco', '🏪 Kiosco'], ['repes', '🔁 Repetidas'], ['balance', '📒 Balance']];
+  const GRUPOS = [['inicio', '🏠 Inicio', ['inicio', 'market']], ['albumes', '📚 Álbumes', ['albumes', 'fabrica', 'repes', 'vitrina']], ['jugar', '🎲 Jugar', ['kiosco', 'cambios', 'gancho', 'licua']],
     ['vaca', '🐶 Vaca', ['expe', 'garage']], ['logros', '🏆 Logros', ['trofeos', 'balance']]];
   const grupoDe = t => GRUPOS.find(g => g[2].includes(t)) || GRUPOS[0];
   function header() {
@@ -546,6 +546,8 @@ const Figus = (() => {
       body = vitrinaHtml();
     } else if (view.tab === 'fabrica') {
       body = fabHtml();
+    } else if (view.tab === 'market') {
+      body = Skins.marketHtml();
     } else if (view.tab === 'licua') {
       body = licuaHtml();
     } else if (view.tab === 'trofeos') {
@@ -554,7 +556,7 @@ const Figus = (() => {
       body = garageHtml();
     } else if (view.tab === 'balance') {
       const L = [...st.ev].sort((a, b) => b.t - a.t).filter(e => e.ty !== 'slot').slice(0, 40);
-      const ic = e => e.ty === 'trade' ? `🤝 Cambio con ${esc(e.nm || '')}: diste ${(e.give || []).length}${e.gvc ? ' + ' + e.gvc + ' vc' : ''}, recibiste ${(e.get || []).length}${e.rvc ? ' + ' + e.rvc + ' vc' : ''}` : e.ty === 'up' ? `🛍️ ${UPS[e.u]?.n || e.u} nivel ${e.lvl}` : e.ty === 'wk' ? '🗓️ Desafío de la semana cumplido' : e.ty === 'hag' ? '🤝 Regateaste' : e.ty === 'tno' ? '🤝 Rechazaste un cambio' : e.ty === 'stick' && !e.n ? '🂠 Pegaste una figu' : e.ty === 'stick' ? `🎯 ¡Pegado perfecto! (${e.acc}%)` : e.ty === 'cover' ? `🎨 Tapa nueva: ${COVERS[e.d] || e.d}` : e.ty === 'exp' ? `🦴 Vaca salió a repartir a ${esc(e.dest)} (${e.h} h)` : e.ty === 'expok' ? `🦴 Volvió del reparto: +${e.rw?.vc || 0}${e.rw?.post ? ' · postal' : ''}${e.rw?.fig ? ' · figu' : ''}${e.rw?.part ? ' · repuesto' : ''}` : e.ty === 'blend' ? '🌀 Licuadora: 5 → 1 de rareza superior' : e.ty === 'ach' ? '🏅 Trofeo nuevo' : e.ty === 'part' ? `🔧 Piezas para el ${esc(modelOf(e.m)?.name || '')} (${(e.p || []).length})` : e.ty === 'win' ? `🏆 ${esc(modelOf(e.m)?.name || '')} ganó ${esc(e.gp)}` : e.ty === 'daily' ? `🎁 Regalo del día${e.s ? ` (racha ${e.s})` : ''}${e.off ? ` · +${e.off} mientras no estabas` : ''}` : e.ty === 'prode' ? `🔮 Prode: ${esc(e.m || '')}` : e.ty === 'pack' ? `📦 Sobre de ${esc(st.albums[e.a]?.name || '?')}${e.tok ? ' (regalo)' : ''}` : e.ty === 'buy' ? `🛒 Compraste #${esc(e.k.split(':')[1])} de ${esc(st.albums[e.k.split(':')[0]]?.name || '?')}` : e.ty === 'sell' ? '🔁 Vendiste una repetida' : e.ty === 'tok' ? `🎁 Sobre de ${e.k === 'vaca' ? 'Vaca' : 'Vélez'}: ${esc(e.why || '')}` : e.ty === 'done' ? `🏆 Completaste ${esc(st.albums[e.a]?.name || '')}` : e.ty;
+      const ic = e => e.ty === 'trade' ? `🤝 Cambio con ${esc(e.nm || '')}: diste ${(e.give || []).length}${e.gvc ? ' + ' + e.gvc + ' vc' : ''}, recibiste ${(e.get || []).length}${e.rvc ? ' + ' + e.rvc + ' vc' : ''}` : e.ty === 'up' ? `🛍️ ${UPS[e.u]?.n || e.u} nivel ${e.lvl}` : e.ty === 'wk' ? '🗓️ Desafío de la semana cumplido' : e.ty === 'hag' ? '🤝 Regateaste' : e.ty === 'tno' ? '🤝 Rechazaste un cambio' : e.ty === 'stick' && !e.n ? '🂠 Pegaste una figu' : e.ty === 'stick' ? `🎯 ¡Pegado perfecto! (${e.acc}%)` : e.ty === 'cover' ? (String(e.d).startsWith('skin-') ? `🌴 Skin de FUNVS: ${esc(e.nm || e.d)}` : `🎨 Tapa nueva: ${COVERS[e.d] || e.d}`) : e.ty === 'exp' ? `🦴 Vaca salió a repartir a ${esc(e.dest)} (${e.h} h)` : e.ty === 'expok' ? `🦴 Volvió del reparto: +${e.rw?.vc || 0}${e.rw?.post ? ' · postal' : ''}${e.rw?.fig ? ' · figu' : ''}${e.rw?.part ? ' · repuesto' : ''}` : e.ty === 'blend' ? '🌀 Licuadora: 5 → 1 de rareza superior' : e.ty === 'ach' ? '🏅 Trofeo nuevo' : e.ty === 'part' ? `🔧 Piezas para el ${esc(modelOf(e.m)?.name || '')} (${(e.p || []).length})` : e.ty === 'win' ? `🏆 ${esc(modelOf(e.m)?.name || '')} ganó ${esc(e.gp)}` : e.ty === 'daily' ? `🎁 Regalo del día${e.s ? ` (racha ${e.s})` : ''}${e.off ? ` · +${e.off} mientras no estabas` : ''}` : e.ty === 'prode' ? `🔮 Prode: ${esc(e.m || '')}` : e.ty === 'pack' ? `📦 Sobre de ${esc(st.albums[e.a]?.name || '?')}${e.tok ? ' (regalo)' : ''}` : e.ty === 'buy' ? `🛒 Compraste #${esc(e.k.split(':')[1])} de ${esc(st.albums[e.k.split(':')[0]]?.name || '?')}` : e.ty === 'sell' ? '🔁 Vendiste una repetida' : e.ty === 'tok' ? `🎁 Sobre de ${e.k === 'vaca' ? 'Vaca' : 'Vélez'}: ${esc(e.why || '')}` : e.ty === 'done' ? `🏆 Completaste ${esc(st.albums[e.a]?.name || '')}` : e.ty;
       const amt = e => e.ty === 'trade' ? [(e.rvc ? '+' + e.rvc : ''), (e.gvc ? '−' + e.gvc : '')].filter(Boolean).join(' ') : e.ty === 'up' ? `−${e.cost}` : e.ty === 'wk' ? `+${e.n}` : e.ty === 'stick' ? `+${e.n || 0}` : e.ty === 'cover' ? `−${e.cost}` : e.ty === 'expok' ? `+${e.rw?.vc || 0}` : e.ty === 'daily' || e.ty === 'prode' ? `+${e.n}` : e.ty === 'sell' ? `+${e.n}` : e.ty === 'pack' && !e.tok || e.ty === 'buy' || e.ty === 'part' ? `−${e.cost}` : '';
       body = `<div class="psstats"><div><b>${d.earned.slot}</b><small>por estar</small></div><div><b>${d.earned.daily}</b><small>regalos</small></div><div><b>${d.earned.prode}</b><small>Prode</small></div><div><b>${d.earned.sell}</b><small>ventas</small></div><div><b>${d.spent}</b><small>gastadas</small></div></div>
         <div class="tdlist">${L.map(e => `<div class="tdrow"><div><b>${ic(e)}</b><small>${new Date(e.t).toLocaleString('es-AR', { day:'numeric', month:'numeric', hour:'2-digit', minute:'2-digit' })}</small></div><b class="fgamt">${amt(e)}</b></div>`).join('') || '<div class="empty">Todavía no hay movimientos.</div>'}</div>`;
@@ -563,7 +565,7 @@ const Figus = (() => {
     bindCommon(v); v.querySelectorAll('.fgbn-it .fig[data-k]').forEach(f => f.onclick = () => zoom(f));
     v.querySelectorAll('[data-alb]').forEach(b => b.onclick = () => { view = { tab:view.tab, alb:b.dataset.alb }; render(); });
     v.querySelectorAll('[data-new]').forEach(b => b.onclick = newAlbum);
-    bindExpe(v); bindLicua(v); bindCambios(v); bindWk(v); bindVitrina(v); bindGancho(v); bindFab(v);
+    bindExpe(v); bindLicua(v); bindCambios(v); bindWk(v); bindVitrina(v); bindGancho(v); bindFab(v); if (view.tab === 'market') Skins.bindMarket(v, render);
     v.querySelectorAll('[data-gs]').forEach(b => b.onclick = () => { view.gs = b.dataset.gs; render(); });
     v.querySelectorAll('[data-gbox]').forEach(b => b.onclick = () => buyBox(b.dataset.gbox));
     v.querySelectorAll('[data-gmod]').forEach(b => b.onclick = () => modelZoom(b.dataset.gmod));
@@ -1661,5 +1663,8 @@ const Figus = (() => {
     if (Nav.current === 'figus' && view.alb && !view.edit) { view = { tab:view.tab || 'albumes' }; render(); setTimeout(() => $('v-figus')?.querySelector('[data-alb]')?.focus(), 50); return true; }
     return false;
   }
-  return { init, render, paseo, back, tab:t => { view = { tab:t }; render(); }, ECO, get coins() { return derive().coins; } };
+  // 🛒 Market: skins de FUNVS pagados con vaccoins (quedan comprados para siempre, en todos los aparatos)
+  const owns = k => derive().covers.has('skin-' + k);
+  function buySkin(k, cost, nm) { if (owns(k)) return true; if (derive().coins < cost) return false; add({ id:'cv-skin-' + k, ty:'cover', d:'skin-' + k, cost, nm }); D = null; pushSoon(); return owns(k); }
+  return { init, render, paseo, back, tab:t => { view = { tab:t }; render(); }, ECO, get coins() { return derive().coins; }, owns, buySkin };
 })();

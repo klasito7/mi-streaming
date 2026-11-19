@@ -2,13 +2,13 @@
    Navegación entre secciones, ajustes y arranque
    ========================================================= */
 const Nav = (() => {
-  const SECS = [['inicio', '🏠 Ahora'], ['canales', '📺 Canales'], ['radios', '📻 Radios'], ['calendario', '📅 Calendario'], ['fulbito', '⚽ Fulbito'], ['prode', '🎯 Prode'], ['motor', '🏁 Automovilismo'], ['boxeo', '🥊 Boxeo'], ['series', '📼 Series'], ['peliculas', '🎬 Películas'], ['musica', '🎵 Música'], ['rap', '🎤 Rap Battle'], ['420', '🍃 420 time'], ['mg', '📍 MG News'], ['tandas', '📼 Tandas'], ['nichos', '🧭 Nichos'], ['fragotime', '🎙️ Fragotime'], ['novelas', '📺 Novelas'], ['porteno', '🎻 Modo porteño'], ['paseo', '🐶 Paseo de Vaca'], ['figus', '🏛️ Colección'], ['fechas', '🎂 Fechas'], ['momentos', '⭐ Momentos'], ['noticias', '📰 Noticias'], ['velez', '💙 Mundo Vélez'], ['juegos', '🎮 Juegos'], ['wrapped', '✨ Wrapped']];
+  const SECS = [['inicio', '🏠 Ahora'], ['canales', '📺 Canales'], ['radios', '📻 Radios'], ['calendario', '📅 Calendario'], ['fulbito', '⚽ Fulbito'], ['prode', '🎯 Prode'], ['motor', '🏁 Automovilismo'], ['boxeo', '🥊 Boxeo'], ['series', '📼 Series'], ['peliculas', '🎬 Películas'], ['musica', '🎵 Música'], ['rap', '🎤 Rap Battle'], ['420', '🍃 420 time'], ['mg', '📍 MG News'], ['tandas', '📼 Tandas'], ['nichos', '🧭 Nichos'], ['gta6', '🌴 Especial GTA VI'], ['fragotime', '🎙️ Fragotime'], ['novelas', '📺 Novelas'], ['porteno', '🎻 Modo porteño'], ['paseo', '🐶 Paseo de Vaca'], ['figus', '🏛️ Colección'], ['fechas', '🎂 Fechas'], ['momentos', '⭐ Momentos'], ['noticias', '📰 Noticias'], ['velez', '💙 Mundo Vélez'], ['juegos', '🎮 Juegos'], ['wrapped', '✨ Wrapped']];
   /* Menú corto: arriba van pocas pestañas; las secciones parecidas viven juntas adentro de un grupo (con pestañitas). */
-  const GROUPS = { ver:['📺 Ver', ['canales', 'series', 'peliculas', 'novelas', 'tandas', 'nichos']], deportes:['🏟️ Deportes', ['fulbito', 'velez', 'motor', 'boxeo', 'prode']],
+  const GROUPS = { ver:['📺 Ver', [...(Date.now() < Date.parse('2026-12-20T00:00:00-03:00') ? ['gta6'] : []), 'canales', 'series', 'peliculas', 'novelas', 'tandas', 'nichos']], deportes:['🏟️ Deportes', ['fulbito', 'velez', 'motor', 'boxeo', 'prode']],
     escuchar:['🎧 Escuchar', ['musica', 'radios', 'porteno']], midia:['🐶 Mi día', ['paseo', 'fechas', 'calendario', 'momentos', 'mg', 'noticias']], jugar:['🎮 Jugar', ['fragotime', 'juegos', 'rap', '420', 'wrapped']] };
   const TOP = ['inicio', 'ver', 'deportes', 'escuchar', 'figus', 'midia', 'jugar'];
   let current = null;
-  const renderers = { inicio:() => Inicio.render(), canales:() => Canales.render(), radios:() => Radio.render(), calendario:() => Calendario.render(), motor:() => Motor.render(), boxeo:() => Boxeo.render(), musica:() => Musica.render(), series:() => Series.render(), peliculas:() => Peliculas.render(), rap:() => Rap.render(), '420':() => T420.render(), mg:() => MG.render(), tandas:() => Tanda.render(), nichos:() => Nichos.render(), fragotime:() => Frago.render(), novelas:() => Novelas.render(), porteno:() => Porteno.render(), paseo:() => Paseo.render(), figus:() => Figus.render(), fechas:() => Fechas.render(), prode:() => Prode.render(), momentos:() => Momentos.render(), wrapped:() => Stats.render(), fulbito:() => Fulbito.render(), noticias:() => Noticias.render(), velez:() => Velez.render(), juegos:() => Juegos.render() };
+  const renderers = { inicio:() => Inicio.render(), canales:() => Canales.render(), radios:() => Radio.render(), calendario:() => Calendario.render(), motor:() => Motor.render(), boxeo:() => Boxeo.render(), musica:() => Musica.render(), series:() => Series.render(), peliculas:() => Peliculas.render(), rap:() => Rap.render(), '420':() => T420.render(), mg:() => MG.render(), tandas:() => Tanda.render(), nichos:() => Nichos.render(), gta6:() => Gta6.render(), fragotime:() => Frago.render(), novelas:() => Novelas.render(), porteno:() => Porteno.render(), paseo:() => Paseo.render(), figus:() => Figus.render(), fechas:() => Fechas.render(), prode:() => Prode.render(), momentos:() => Momentos.render(), wrapped:() => Stats.render(), fulbito:() => Fulbito.render(), noticias:() => Noticias.render(), velez:() => Velez.render(), juegos:() => Juegos.render() };
   const hidden = () => db.nav?.hidden || [];
   const members = g => { const def = GROUPS[g][1], o = (db.nav?.grp || {})[g] || []; return [...o.filter(x => def.includes(x)), ...def.filter(x => !o.includes(x))]; };
   const visMembers = g => members(g).filter(x => !hidden().includes(x) || x === current);
@@ -90,6 +90,7 @@ function initSettings() {
   document.querySelectorAll('[data-close]').forEach(b => b.onclick = () => b.closest('dialog').close());
   $('setHud').onchange = e => TV.setOn(e.target.checked);
   const zf = () => S.get('zapFx', { on:true, sound:false });
+  $('setSkin').onchange = e => Skins.wear(e.target.value);
   $('setYtApp').onchange = e => { S.set('ytApp', e.target.checked); toast(e.target.checked ? '▶️ YouTube se va a abrir en su app, con tu cuenta' : '📺 YouTube se ve adentro de FUNVS', { ms:2500 }); };
   $('setYtClean').onchange = e => { S.set('ytClean', e.target.checked); toast('🧼 Se aplica al próximo video que pongas', { ms:2500 }); };
   $('setZfx').onchange = e => { S.set('zapFx', { ...zf(), on:e.target.checked }); if (e.target.checked && Player.slots[Player.sel]) Player.zapFx(Player.sel, Player.slots[Player.sel].c); };
@@ -157,7 +158,7 @@ function initSettings() {
   addEventListener('paste', e => { if (!$('petList')?.offsetParent) return; const f = pastedImages(e); if (f.length) { e.preventDefault(); addPets(f); } });
   $('btnSettings').addEventListener('click', petPaint);
   $('btnSettings').onclick = () => {
-    $('setHud').checked = TV.on; $('setZfx').checked = S.get('zapFx', { on:true }).on; $('setYtClean').checked = S.get('ytClean', true); $('setYtApp').checked = S.get('ytApp', Device.mode === 'tv'); $('setLite').checked = Lite.on; $('setZfxS').checked = !!S.get('zapFx', {}).sound;
+    $('setHud').checked = TV.on; $('setZfx').checked = S.get('zapFx', { on:true }).on; $('setSkin').innerHTML = [['', '💙 Clásico'], ...Skins.owned()].map(([k, n]) => `<option value="${k}" ${Skins.cur() === k ? 'selected' : ''}>${n}</option>`).join(''); $('setYtClean').checked = S.get('ytClean', true); $('setYtApp').checked = S.get('ytApp', Device.mode === 'tv'); $('setLite').checked = Lite.on; $('setZfxS').checked = !!S.get('zapFx', {}).sound;
     $('setKey').value = db.key;
     $('setRef').value = String(db.refresh);
     { const tot = Canales.quotaTotal(), L = { pc:'🖥️ compu', tv:'📺 tele', celu:'📱 celu' }, pct = Math.min(100, tot / 100);
@@ -218,7 +219,7 @@ document.addEventListener('visibilitychange', () => {
 /* ---------- Arranque ---------- */
 if (location.protocol === 'file:') warn('Estás abriendo el archivo desde la compu: Twitch y algunos datos solo andan con la página publicada (GitHub Pages).');
 Player.build(); TV.build(); Reloj.init(); Dia.init();
-  Franja.init(); MG.init(); Buscar.init(); Partido.init(); Grafismo.init(); Tanda.init(); Zap.init(); Teclado.init(); Zocalos.init(); Paseo.init(); Fechas.init(); Figus.init(); Calidad.init(); Canales.init(); Radio.init(); Fulbito.init(); Noticias.init(); Velez.init(); Calendario.init(); Motor.init(); Musica.init(); Prode.init(); Momentos.init(); Stats.init(); Rap.init(); T420.init(); Likes.init(); Boxeo.init(); Series.init(); Peliculas.init(); Juegos.init(); Ver.init(); Diario.init(); Resumenes.init(); Clasicos.init(); Actualidad.init();
+  Franja.init(); MG.init(); Buscar.init(); Partido.init(); Grafismo.init(); Tanda.init(); Zap.init(); Teclado.init(); Zocalos.init(); Paseo.init(); Fechas.init(); Figus.init(); Skins.init(); Calidad.init(); Canales.init(); Radio.init(); Fulbito.init(); Noticias.init(); Velez.init(); Calendario.init(); Motor.init(); Musica.init(); Prode.init(); Momentos.init(); Stats.init(); Rap.init(); T420.init(); Likes.init(); Boxeo.init(); Series.init(); Peliculas.init(); Juegos.init(); Ver.init(); Diario.init(); Resumenes.init(); Clasicos.init(); Actualidad.init();
 $('btnGuia').onclick = () => { S.set('canView', S.get('canView', 'cards') === 'guia' ? 'cards' : 'guia'); Canales.render(); };
 setInterval(() => { if (Nav.current === 'canales' && S.get('canView', 'cards') === 'guia' && !document.hidden) Canales.render(); }, 60e3);
 $('btnLikeSetup').onclick = () => { $('dlgSet').close(); Likes.openSetup(); };
