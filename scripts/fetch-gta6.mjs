@@ -36,10 +36,13 @@ const seen = new Set();
 const NEWS = [...news, ...(prev.news || [])].sort((a, b) => b.date - a.date).filter(n => { const k = n.url.split('?')[0]; if (seen.has(k)) return false; seen.add(k); return Date.now() - n.date < 40 * 864e5; }).slice(0, 80);
 
 // ▶️ youtubers: el canal se busca por su @ (y queda guardado para la próxima)
-const YT = [['IlloJuan', ['illojuan', 'IlloJuan']], ['elrubius', ['elrubiusOMG']], ['Germán', ['JuegaGerman', 'HolaSoyGerman']], ['Willyrex', ['willyrex', 'TheWillyrex']],
-  ['DaniRep', ['thedanirep']], ['Bananirou', ['bananirou']], ['Vector', ['vector', 'VectorTV', 'Vectorrp']], ['Mangel', ['mangelrogel']]];
+// varios @ = canales distintos de la misma persona (Germán, Willyrex); el resto se queda con el primero que encuentra
+const YT = [['IlloJuan', ['UC:UCKvoBRFqMNqvuSvFBiNadgw']], ['elrubius', ['elrubiusOMG']], ['Germán', ['JuegaGerman', 'HolaSoyGerman']], ['Willyrex', ['willyrex', 'TheWillyrex']],
+  ['DaniRep', ['thedanirep']], ['Bananirou', ['bananirou']], ['Vector', ['vector']], ['Mangel', ['mangelrogel']]];
 const chans = { ...(prev.chans || {}) }, vids = [];
+delete chans.VectorTV; delete chans.Vectorrp;
 async function idOf(h) {
+  if (h.startsWith('UC:')) return h.slice(3);
   if (chans[h]) return chans[h];
   try { const x = await get('https://www.youtube.com/@' + h, 20000); const m = x.match(/"externalId":"(UC[\w-]{22})"/) || x.match(/<link rel="canonical" href="https:\/\/www\.youtube\.com\/channel\/(UC[\w-]{22})"/) || x.match(/"channelId":"(UC[\w-]{22})"/);
     if (m) return (chans[h] = m[1]); } catch {}
@@ -52,7 +55,7 @@ await Promise.all(YT.map(async ([name, hs]) => {
       const x = await get('https://www.youtube.com/feeds/videos.xml?channel_id=' + cid);
       for (const e of x.split('<entry>').slice(1)) {
         const t = dec(tag(e, 'title')), id = tag(e, 'yt:videoId'); if (!id || !GTA.test(t)) continue;
-        vids.push({ id, t, ch:name, h, date:Date.parse(tag(e, 'published')) || Date.now(), views:+(e.match(/<media:statistics views="(\d+)"/) || [])[1] || 0 });
+        vids.push({ id, t, ch:name, h:h.replace(/^UC:/, ''), date:Date.parse(tag(e, 'published')) || Date.now(), views:+(e.match(/<media:statistics views="(\d+)"/) || [])[1] || 0 });
       }
     } catch {}
   }
