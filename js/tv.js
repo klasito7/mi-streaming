@@ -4,6 +4,7 @@
    abajo izq. hora, día y clima · abajo der. controles · zócalo de noticias
    ========================================================= */
 const TV = (() => {
+  let seekDrag = false; const mmssF = x => { x = Math.max(0, Math.floor(x || 0)); const h = Math.floor(x / 3600), m = Math.floor(x % 3600 / 60), sx = String(x % 60).padStart(2, '0'); return h ? `${h}:${String(m).padStart(2, '0')}:${sx}` : `${m}:${sx}`; };
   const PLACES = [['Monte Grande', -34.8157, -58.4687], ['CABA', -34.6037, -58.3816]];
   const DIAS = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
   const MESES = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
@@ -74,6 +75,7 @@ const TV = (() => {
     document.querySelector('header .top').insertAdjacentHTML('afterbegin', '<div class="nph" id="npHead"></div>');
     document.querySelector('header .top').insertAdjacentHTML('beforeend', '<div class="hlogo" id="hLogo"><img class="pet" src="img/vaca.jpg" alt=""><span class="f">FUN</span><span class="v">VS</span><i></i></div>');
     $('bottom').insertAdjacentHTML('beforeend', `<footer id="tvfoot">
+        <div class="fseek" id="fSeek" hidden><span id="fsCur">0:00</span><input type="range" id="fsPos" min="0" max="1000" step="1" value="0" aria-label="Ir a un minuto"><span id="fsDur">0:00</span></div>
         <div class="fclock"><div class="ftime" id="fTime"></div><div><div class="fdate" id="fDate"></div><div class="fwx" id="fWx"></div></div></div>
         <div class="fnow" id="fNow"></div>
         <div class="fctl" id="fCtl"><button data-c="prev" title="Anterior">⏮</button><button data-c="back" title="Atrás 10 segundos">⏪</button><button data-c="play" title="Pausa / seguir">❚❚</button><button data-c="fwd" title="Adelante 10 segundos">⏩</button><button data-c="live" class="tolive" title="Volver al vivo">● VIVO</button><button data-c="next" title="Siguiente">⏭</button><button data-c="mute" title="Silenciar">🔊</button>
@@ -102,6 +104,11 @@ const TV = (() => {
     document.body.classList.toggle('muvidshow', !S.get('musHideVid', false));
     $('fNow').onclick = e => { const o = e.target.closest('[data-other]'); if (o) { AudioMgr.focus(o.dataset.other); setTimeout(tick, 150); return; } const id = AudioMgr.active; if (!id) return;
       Nav.go(id === 'radio' ? 'radios' : id === 'music' ? 'musica' : 'canales'); };
+    // ⏱️ barrita para adelantar o atrasar (temas de música y videos o vivos ya emitidos)
+    const fsP = $('fsPos'), fsWant = () => { const k = AudioMgr.sink(AudioMgr.active), q = k?.pos?.() || { d:0 }; return fsP.value / 1000 * q.d; };
+    fsP.oninput = () => { seekDrag = true; $('fsCur').textContent = mmssF(fsWant()); };
+    fsP.onchange = () => { const k = AudioMgr.sink(AudioMgr.active); k?.seekTo?.(fsWant()); seekDrag = false; showUi(); setTimeout(tick, 300); };
+    fsP.onpointerup = fsP.ontouchend = () => setTimeout(() => { seekDrag = false; }, 400);
     const fv = $('fCtl').querySelector('[data-c=vol]');
     fv.oninput = e => { const s = AudioMgr.sink(AudioMgr.active); s && s.setVol && s.setVol(+e.target.value); S.set('vol', +e.target.value); };
     fv.onpointerdown = () => dragging = true; fv.onpointerup = () => dragging = false;
@@ -281,10 +288,13 @@ const TV = (() => {
     if ($('fNow').dataset.k !== nk) { $('fNow').dataset.k = nk;
       $('fNow').innerHTML = s ? `<span class="fic">${id === 'radio' ? '📻' : id === 'music' ? '🎵' : '📺'}</span><div><b>${esc(name)}</b><small>${esc(sub)}</small></div>${others.map(k => `<button class="fother" data-other="${k}" title="Pasar a esto">⇄ ${k === 'radio' ? '📻' : '🎵'} ${esc(AudioMgr.sink(k).label())}</button>`).join('')}` : ''; }
     $('fCtl').querySelector('[data-c=vid]').style.display = id === 'music' ? '' : 'none';
+    if (!s) { $('fSeek').hidden = true; document.body.classList.remove('fseekon'); }
     if (s) {
       $('tvPlay').style.display = s.toggle ? '' : 'none';
       $('tvList').style.display = id === 'radio' || id === 'music' ? 'none' : '';
       const sk = !!s.seek, bh = s.behind ? s.behind() : 0, fc0 = $('fCtl');
+      const q = s.pos?.() || { t:0, d:0 }, fs = $('fSeek'); fs.hidden = !(q.d > 0); document.body.classList.toggle('fseekon', q.d > 0);
+      if (q.d > 0 && !seekDrag) { $('fsPos').value = Math.round(q.t / q.d * 1000); $('fsCur').textContent = mmssF(q.t); $('fsDur').textContent = mmssF(q.d); }
       [$('tvBack'), $('tvFwd'), fc0.querySelector('[data-c=back]'), fc0.querySelector('[data-c=fwd]')].forEach(b => b.style.display = sk ? '' : 'none');
       [$('tvLive'), fc0.querySelector('[data-c=live]')].forEach(b => { b.style.display = s.behind && s.live?.() ? '' : 'none'; b.classList.toggle('behind', bh > 25); b.textContent = bh > 25 ? `● VIVO −${bh >= 3600 ? Math.floor(bh / 3600) + 'h' : ''}${Math.floor(bh % 3600 / 60)}m` : '● VIVO'; });
       $('tvPlay').textContent = s.paused && s.paused() ? '▶' : '❚❚';

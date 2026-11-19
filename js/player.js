@@ -210,6 +210,8 @@ const Player = (() => {
           seek:d => { try { const t = p.getCurrentTime(), D = p.getDuration(); p.seekTo(Math.max(0, D ? Math.min(t + d, D - 1) : t + d), true); if (p.getPlayerState() === 2) p.playVideo(); } catch {} },
           behind:() => { try { const x = Canales.status[s.c.uid] || {}; if (x.st !== 'live') return 0; return Math.max(0, p.getDuration() - p.getCurrentTime()); } catch { return 0; } },
           toLive:() => { try { p.seekTo(p.getDuration() + 60, true); p.playVideo(); } catch {} },
+          pos:() => { try { const x = Canales.status[s.c.uid] || {}; if (x.st === 'live') return { t:0, d:0 }; return { t:p.getCurrentTime() || 0, d:p.getDuration() || 0 }; } catch { return { t:0, d:0 }; } },
+          seekTo:x => { try { p.seekTo(Math.max(0, x), true); if (p.getPlayerState() !== 1) p.playVideo(); } catch {} },
           muted:() => { try { return p.isMuted(); } catch { return false; } },
           getVol:() => { try { return p.getVolume() / 100; } catch { return 1; } },
           setVol:v => { try { p.setVolume(Math.round(v * 100)); if (v > 0 && p.isMuted()) AudioMgr.focus(sid); } catch {} } });

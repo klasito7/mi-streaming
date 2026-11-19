@@ -300,6 +300,10 @@ const Musica = (() => {
       mute() { try { p && p.mute(); } catch {} }, unmute() { try { p && p.unMute(); } catch {} },
       label:() => cur ? (track?.title || cur.name || 'Música') : '', music:true, live:() => false,
       paused:() => st() !== 1, toggle,
+      // ⏪ ⏩ y la barrita para ir a cualquier minuto del tema
+      seek:d => { try { const t = p.getCurrentTime(), D = p.getDuration(); p.seekTo(Math.max(0, D ? Math.min(t + d, D - 1) : t + d), true); if (st() !== 1) p.playVideo(); } catch {} },
+      pos:() => { try { return { t:p.getCurrentTime() || 0, d:p.getDuration() || 0 }; } catch { return { t:0, d:0 }; } },
+      seekTo:x => { try { p.seekTo(Math.max(0, x), true); if (st() !== 1) p.playVideo(); } catch {} },
       muted:() => { try { return p.isMuted(); } catch { return false; } },
       getVol:() => { try { return p.getVolume() / 100; } catch { return 1; } },
       setVol:v => { try { p.setVolume(Math.round(v * 100)); if (v > 0 && p.isMuted()) AudioMgr.focus('music'); } catch {} }
