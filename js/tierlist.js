@@ -175,9 +175,10 @@ const Tierlist = (() => {
       <div class="tlboard">${cur.tiers.map((t, i) => `<div class="tlrowwrap">
         <div class="tllab" style="background:${esc(t.color)};color:${ink(t.color)}"><input value="${esc(t.label)}" data-tll="${t.id}" maxlength="24" aria-label="Nombre de la fila"></div>
         <div class="tlrow" data-tlrow="${t.id}">${(cur.rows[t.id] || []).map(tile).join('')}</div>
-        <div class="tltools"><button class="sm" data-tlc="${t.id}" title="Cambiar color">🎨</button><button class="sm" data-tlu="${i}" title="Subir" ${i ? '' : 'disabled'}>▲</button><button class="sm" data-tld="${i}" title="Bajar" ${i < cur.tiers.length - 1 ? '' : 'disabled'}>▼</button><button class="sm" data-tlr="${t.id}" title="Borrar fila">✕</button></div></div>`).join('')}
+        <div class="tltools"><label class="tlcol" title="Elegir color" style="background:${esc(t.color)}"><input type="color" data-tlc="${t.id}" value="${esc(t.color)}"></label><button class="sm" data-tlu="${i}" title="Subir" ${i ? '' : 'disabled'}>▲</button><button class="sm" data-tld="${i}" title="Bajar" ${i < cur.tiers.length - 1 ? '' : 'disabled'}>▼</button><button class="sm" data-tlr="${t.id}" title="Borrar fila">✕</button></div></div>`).join('')}
       </div>
-      <div class="btns tladdrow"><button class="sm" data-tla="row">＋ Fila</button></div>
+      <div class="btns tladdrow"><span class="tlcnt">Categorías: <button class="sm" data-tla="less" ${cur.tiers.length > 1 ? '' : 'disabled'}>−</button><b>${cur.tiers.length}</b><button class="sm" data-tla="row" ${cur.tiers.length < 15 ? '' : 'disabled'}>＋</button></span>
+        <span class="tlpal">${COLS.map(c => `<button class="tlsw" data-tlsw="${c}" style="background:${c}" title="Pintar todas en degradé desde este color"></button>`).join('')}<button class="sm" data-tlclasico title="Rojo, naranja, amarillo, verde, azul…">🌈 Clásicos</button><button class="sm" data-tlvelez title="Del blanco al azul oscuro">💙 Vélez</button></span></div>
       <div class="box tlpoolbox"><div class="tlpoolhead"><b>🖼️ Sin ubicar</b>
         <div class="btns"><button class="pri" data-tla="paste">📋 Pegar</button><label class="btn"><input type="file" accept="image/*" multiple data-tlf hidden>＋ Subir</label><button data-tla="txt">＋ Texto</button><button data-tla="new">🧹 Empezar de nuevo</button></div></div>
         <div class="tlrow tlpool" data-tlrow="pool">${cur.rows.pool.map(tile).join('') || `<span class="mut tlempty">${Device.mode === 'pc' ? 'Copiá una imagen y apretá <b>Ctrl+V</b> acá, arrastrá archivos o usá los botones.' : 'Copiá una imagen (mantené apretado → Copiar) y tocá <b>📋 Pegar</b>, o subila de la galería.'}</span>`}</div></div>
@@ -185,15 +186,21 @@ const Tierlist = (() => {
     v.querySelectorAll('[data-tlt]').forEach(b => b.onclick = () => { tab = b.dataset.tlt; render(); });
     $('tlTitle').oninput = e => { cur.title = e.target.value; persist(); };
     v.querySelectorAll('[data-tll]').forEach(i => { i.oninput = () => { cur.tiers.find(t => t.id === i.dataset.tll).label = i.value; persist(); }; i.onpointerdown = e => e.stopPropagation(); });
-    v.querySelectorAll('[data-tlc]').forEach(b => b.onclick = () => { const t = cur.tiers.find(x => x.id === b.dataset.tlc); t.color = COLS[(COLS.indexOf(t.color) + 1) % COLS.length]; persist(); render(); });
-    v.querySelectorAll('.tllab').forEach(l => l.style.borderRight = '1px solid #ffffff22');
+    v.querySelectorAll('[data-tlc]').forEach(i => { i.oninput = () => { const t = cur.tiers.find(x => x.id === i.dataset.tlc); t.color = i.value; const row = i.closest('.tlrowwrap'); row.querySelector('.tllab').style.background = i.value; row.querySelector('.tllab').style.color = ink(i.value); i.parentElement.style.background = i.value; persist(); }; });
     const swap = (i, j) => { [cur.tiers[i], cur.tiers[j]] = [cur.tiers[j], cur.tiers[i]]; persist(); render(); };
     v.querySelectorAll('[data-tlu]').forEach(b => b.onclick = () => swap(+b.dataset.tlu, +b.dataset.tlu - 1));
     v.querySelectorAll('[data-tld]').forEach(b => b.onclick = () => swap(+b.dataset.tld, +b.dataset.tld + 1));
     v.querySelectorAll('[data-tlr]').forEach(b => b.onclick = () => { const id = b.dataset.tlr, n = (cur.rows[id] || []).length;
       if (n && !confirm(`Esa fila tiene ${n}. ¿La borro? Las imágenes vuelven a "Sin ubicar".`)) return;
       cur.rows.pool.push(...(cur.rows[id] || [])); delete cur.rows[id]; cur.tiers = cur.tiers.filter(t => t.id !== id); persist(); render(); });
-    v.querySelector('[data-tla="row"]').onclick = () => { const id = uid(); cur.tiers.push({ id, label:'Nueva', color:COLS[cur.tiers.length % COLS.length] }); cur.rows[id] = []; persist(); render(); };
+    const LET = 'SABCDEFGHIJKLMNO';
+    v.querySelector('[data-tla="row"]').onclick = () => { const id = uid(); cur.tiers.push({ id, label:LET[cur.tiers.length] || 'Nueva', color:COLS[cur.tiers.length % COLS.length] }); cur.rows[id] = []; persist(); render(); };
+    v.querySelector('[data-tla="less"]').onclick = () => { const t = cur.tiers[cur.tiers.length - 1], n = (cur.rows[t.id] || []).length; if (n && !confirm(`La última fila (${t.label}) tiene ${n}. ¿La saco? Las imágenes vuelven a "Sin ubicar".`)) return; cur.rows.pool.push(...(cur.rows[t.id] || [])); delete cur.rows[t.id]; cur.tiers.pop(); persist(); render(); };
+    const RAIN = ['#ff7f7f', '#ffbf7f', '#ffdf7f', '#ffff7f', '#bfff7f', '#7fff7f', '#7fffff', '#7fbfff', '#7f7fff', '#ff7fff', '#bf7fbf', '#9aa0ad'];
+    v.querySelector('[data-tlclasico]').onclick = () => { cur.tiers.forEach((t, i) => t.color = RAIN[i % RAIN.length]); persist(); render(); };
+    v.querySelector('[data-tlvelez]').onclick = () => { cur.tiers.forEach((t, i) => t.color = COLS[i % COLS.length]); persist(); render(); };
+    // un toque en la paleta: pinta todas las filas en degradé, del color elegido al negro
+    v.querySelectorAll('[data-tlsw]').forEach(b => b.onclick = () => { const h = b.dataset.tlsw, n = cur.tiers.length, rgb = [1, 3, 5].map(k => parseInt(h.slice(k, k + 2), 16)); cur.tiers.forEach((t, i) => { const f = n > 1 ? 1 - i / (n - 1) * .8 : 1; t.color = '#' + rgb.map(c => Math.round(c * f).toString(16).padStart(2, '0')).join(''); }); persist(); render(); });
     v.querySelector('[data-tla="paste"]').onclick = async () => { try { addFiles(await clipImages()); } catch (er) { toast(`<b>${esc(er.message)}</b>`, { cls:'info' }); } };
     v.querySelector('[data-tlf]').onchange = e => { addFiles([...e.target.files]); e.target.value = ''; };
     v.querySelector('[data-tla="txt"]').onclick = () => { const t = prompt('Texto de la ficha (ej.: el nombre de una banda):'); if (!t?.trim()) return; const id = uid(); cur.items[id] = { txt:t.trim().slice(0, 60) }; cur.rows.pool.push(id); persist(); render(); };
