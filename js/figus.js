@@ -14,7 +14,7 @@ const Figus = (() => {
   const ECO = { slotMs:5 * 60e3, slotCap:60, daily:20, streakStep:5, streakMax:7, offPerH:2, offMax:30,
     prodeWin:15, prodeExact:40, prodeScorer:10, velezX:2,
     pack:40, packVelez:60, packSize:5, buy:{ c:60, r:150, e:250, l:400 }, sell:{ c:3, r:10, e:20, l:40 }, odds:{ c:.62, r:.25, e:.09, l:.04 }, perfect:{ c:5, r:5, e:10, l:10 },
-    covers:{ clasica:0, cuero:300, retro:300, neon:500 } };
+    covers:{ clasica:0, cuero:300, retro:300, neon:500 }, lbCap:60 };
   const STYLES = { panini:'🟨 Clásico Panini', retro:'📼 Retro 90s', neon:'💡 Neón', diario:'📰 Diario de papel', holo:'🌈 Holográfico' };
   // cómo se consiguen los sobres (independiente de qué trata el álbum)
   const KINDS = { canal:'🏪 Sobres en el kiosco', vaca:'🐶 Sobres solo paseando a Vaca', velez:'💙 Kiosco (más barato los días que juega Vélez)' };
@@ -102,12 +102,14 @@ const Figus = (() => {
     const stuck = new Set(B.stuckV === 2 ? B.stuck || [] : []), covers = new Set(B.covers || ['clasica']), postT = { ...(B.postT || {}) }; let perfects = B.perfects || 0;
     const claws = {}; let clawN = B.clawN || 0, clawWin = B.clawWin || 0;
     const ups = { ...(B.ups || {}) }, postV = new Set(B.postV || []); let trades = B.trades || 0, pibes = B.pibes || 0, perfRun = B.perfRun || 0, perfBest = B.perfBest || 0, wks = B.wks || 0;
+    const lbDay = {};    // 🗺️ vaccoins que llegan de Lifebgood: tope de ECO.lbCap por día
     const sticks = [];   // 🂠 nada se pega solo: todo lo que tenés y no pegaste está en el mazo
     for (const e of evs) {
       if (e.ty === 'slot') { const d = ymdOf(e.t); day[d] = (day[d] || 0) + 1; if (day[d] <= ECO.slotCap) { coins++; earned.slot++; } lastSlot = Math.max(lastSlot, e.t); }
       else if (e.ty === 'daily') { coins += e.n; earned.daily += e.n; dailies.add(e.d); }
       else if (e.ty === 'prode' || e.ty === 'walk' || e.ty === 'band') { coins += e.n; earned.prode += e.n; }
       else if (e.ty === 'tok') toks[e.id] = e;
+      else if (e.ty === 'lb') { const d = ymdOf(e.ps || e.t), k = Math.max(0, Math.min(e.n || 0, ECO.lbCap - (lbDay[d] || 0))); lbDay[d] = (lbDay[d] || 0) + k; coins += k; earned.lb = (earned.lb || 0) + k; }
       else if (e.ty === 'pack') {
         if (e.tok) { if (!toks[e.tok]) continue; delete toks[e.tok]; }
         else { if (coins < e.cost) continue; coins -= e.cost; spent += e.cost; }
@@ -169,6 +171,33 @@ const Figus = (() => {
     return ch;
   }
 
+  /* ---------------- 🗺️ Lifebgood: la app de misiones en la calle deja en este Gist lo que ganaste caminando ---------------- */
+  // Cada cosa tiene su id: aunque se lea mil veces, entra una sola vez.
+  function importLB(r) {
+    if (!r || !Array.isArray(r.ev)) return;
+    let vc = 0, sob = 0, pas = 0;
+    for (const e of r.ev.slice(-600)) {
+      if (!e || !e.id) continue;
+      const id = String(e.id).slice(0, 60);
+      if (e.ty === 'coins') {
+        const n = Math.max(0, Math.min(60, Math.round(+e.n || 0)));
+        if (n && add({ id:'lb-' + id, ty:'lb', n, m:String(e.why || 'hallazgo').slice(0, 60), ps:+e.t || Date.now() })) vc += n;
+      } else if (e.ty === 'sobre' && (e.k === 'vaca' || e.k === 'velez')) {
+        if (add({ id:'lb-' + id, ty:'tok', k:e.k, why:'Encontrado caminando (Lifebgood)' })) sob++;
+      } else if (e.ty === 'walk') {
+        if (has('lbw-' + id)) continue;
+        const p = { s:+e.s, min:Math.round(+e.min || 0), km:Math.round((+e.km || 0) * 10) / 10, T:null, c:null, lb:true, porto:2 };
+        if (!p.s || !(p.min >= 5 && p.min <= 240) || p.s > Date.now() || p.s < Date.now() - 8 * 864e5) continue;
+        add({ id:'lbw-' + id, ty:'lbw' });
+        const L = Array.isArray(db.paseos) ? db.paseos : (db.paseos = []);
+        if (L.some(x => p.s < x.s + x.min * 60e3 && x.s < p.s + p.min * 60e3)) continue; // ese paseo ya estaba anotado en FUNVS
+        L.push(p); L.sort((a, b) => b.s - a.s); db.paseos = L.slice(0, 200); save();
+        paseo(p); vc += walk(p) || 0; pas++;
+      }
+    }
+    if ((vc || sob || pas) && !tvDev()) toast(`<b>🗺️ Llegó de Lifebgood</b><small>${[pas ? `${pas} paseo${pas > 1 ? 's' : ''} de Vaca` : '', vc ? `+${vc} vaccoins` : '', sob ? `${sob} sobre${sob > 1 ? 's' : ''}` : ''].filter(Boolean).join(' · ')}</small>`, { cls:'info', ms:6000, onclick:() => Nav.go('figus') });
+  }
+
   /* ---------------- ☁ Gist privado aparte ---------------- */
   let pushT = null, gmeta = null, busy = false;
   const online = () => !!db.sync?.token;
@@ -184,6 +213,8 @@ const Figus = (() => {
       const id = await gistId();
       let g; try { g = await gh('/gists/' + id); } catch (e) { if (e.status === 404) { db.figusGist = null; save(); } throw e; }
       gmeta = g; const f = g.files['figus.json'];
+      const lbf = g.files['lifebgood.json'];
+      if (lbf) { try { importLB(JSON.parse(lbf.truncated ? await (await fetch(lbf.raw_url)).text() : lbf.content)); } catch {} }
       let need = !f || dirtyImg.size > 0;
       if (f) { const r = JSON.parse(f.truncated ? await (await fetch(f.raw_url)).text() : f.content); if (merge(r) && Nav.current === 'figus') render();
         // ¿tengo algo que allá no está? (movimientos o álbumes más nuevos) → subo
@@ -530,7 +561,8 @@ const Figus = (() => {
         <div class="fghow"><div>⏱️ <b>1 cada 5 min</b> en FUNVS (hasta ${ECO.slotCap} por día, una sola vez aunque esté abierto en varios aparatos)</div>
           <div>🎁 <b>Regalo del día</b>: ${ECO.daily} + racha (hasta +${ECO.streakMax * ECO.streakStep}) + lo de mientras no estabas</div>
           <div>🔮 <b>Prode</b>: ${ECO.prodeWin} por acertar el ganador, ${ECO.prodeExact} el resultado exacto, +${ECO.prodeScorer} por goleador. Vélez ×2</div>
-          <div>🐶 <b>Paseo de Vaca</b>: 1 sobre de Vaca por paseo · 💙 <b>Día de Vélez</b>: 1 sobre de Vélez de regalo</div></div>`;
+          <div>🐶 <b>Paseo de Vaca</b>: 1 sobre de Vaca por paseo · 💙 <b>Día de Vélez</b>: 1 sobre de Vélez de regalo</div>
+          <div>🗺️ <b>Lifebgood</b>: lo que encontrás caminando (bolsas, cofres y sobres) y los paseos de Vaca que anotás ahí (hasta ${ECO.lbCap} vaccoins por día)</div></div>`;
     } else if (view.tab === 'albumes') {
       body = `<div class="fgalbs">${A.map(albumTile).join('')}<button class="fgalb fgnew" data-new>＋ Nuevo álbum</button></div>`;
     } else if (view.tab === 'kiosco') {
@@ -566,7 +598,7 @@ const Figus = (() => {
       body = garageHtml();
     } else if (view.tab === 'balance') {
       const L = [...st.ev].sort((a, b) => b.t - a.t).filter(e => e.ty !== 'slot').slice(0, 40);
-      const ic = e => e.ty === 'walk' ? `🐾 Paseo con Vaca: ${esc(e.m || '')}` : e.ty === 'band' ? `🎸 Banda del día: ${esc(e.m || '')}` : e.ty === 'trade' ? `🤝 Cambio con ${esc(e.nm || '')}: diste ${(e.give || []).length}${e.gvc ? ' + ' + e.gvc + ' vc' : ''}, recibiste ${(e.get || []).length}${e.rvc ? ' + ' + e.rvc + ' vc' : ''}` : e.ty === 'up' ? `🛍️ ${UPS[e.u]?.n || e.u} nivel ${e.lvl}` : e.ty === 'wk' ? '🗓️ Desafío de la semana cumplido' : e.ty === 'hag' ? '🤝 Regateaste' : e.ty === 'tno' ? '🤝 Rechazaste un cambio' : e.ty === 'stick' && !e.n ? '🂠 Pegaste una figu' : e.ty === 'stick' ? `🎯 ¡Pegado perfecto! (${e.acc}%)` : e.ty === 'cover' ? (String(e.d).startsWith('skin-') ? `🌴 Skin de FUNVS: ${esc(e.nm || e.d)}` : `🎨 Tapa nueva: ${COVERS[e.d] || e.d}`) : e.ty === 'exp' ? `🦴 Vaca salió a repartir a ${esc(e.dest)} (${e.h} h)` : e.ty === 'expok' ? `🦴 Volvió del reparto: +${e.rw?.vc || 0}${e.rw?.post ? ' · postal' : ''}${e.rw?.fig ? ' · figu' : ''}${e.rw?.part ? ' · repuesto' : ''}` : e.ty === 'blend' ? '🌀 Licuadora: 5 → 1 de rareza superior' : e.ty === 'ach' ? '🏅 Trofeo nuevo' : e.ty === 'part' ? `🔧 Piezas para el ${esc(modelOf(e.m)?.name || '')} (${(e.p || []).length})` : e.ty === 'win' ? `🏆 ${esc(modelOf(e.m)?.name || '')} ganó ${esc(e.gp)}` : e.ty === 'daily' ? `🎁 Regalo del día${e.s ? ` (racha ${e.s})` : ''}${e.off ? ` · +${e.off} mientras no estabas` : ''}` : e.ty === 'prode' ? `🔮 Prode: ${esc(e.m || '')}` : e.ty === 'pack' ? `📦 Sobre de ${esc(st.albums[e.a]?.name || '?')}${e.tok ? ' (regalo)' : ''}` : e.ty === 'buy' ? `🛒 Compraste #${esc(e.k.split(':')[1])} de ${esc(st.albums[e.k.split(':')[0]]?.name || '?')}` : e.ty === 'sell' ? '🔁 Vendiste una repetida' : e.ty === 'tok' ? `🎁 Sobre de ${e.k === 'vaca' ? 'Vaca' : 'Vélez'}: ${esc(e.why || '')}` : e.ty === 'done' ? `🏆 Completaste ${esc(st.albums[e.a]?.name || '')}` : e.ty;
+      const ic = e => e.ty === 'lb' ? `🗺️ Lifebgood: ${esc(e.m || '')} (+${e.n})` : e.ty === 'lbw' ? '🗺️ Paseo de Vaca anotado en Lifebgood' : e.ty === 'walk' ? `🐾 Paseo con Vaca: ${esc(e.m || '')}` : e.ty === 'band' ? `🎸 Banda del día: ${esc(e.m || '')}` : e.ty === 'trade' ? `🤝 Cambio con ${esc(e.nm || '')}: diste ${(e.give || []).length}${e.gvc ? ' + ' + e.gvc + ' vc' : ''}, recibiste ${(e.get || []).length}${e.rvc ? ' + ' + e.rvc + ' vc' : ''}` : e.ty === 'up' ? `🛍️ ${UPS[e.u]?.n || e.u} nivel ${e.lvl}` : e.ty === 'wk' ? '🗓️ Desafío de la semana cumplido' : e.ty === 'hag' ? '🤝 Regateaste' : e.ty === 'tno' ? '🤝 Rechazaste un cambio' : e.ty === 'stick' && !e.n ? '🂠 Pegaste una figu' : e.ty === 'stick' ? `🎯 ¡Pegado perfecto! (${e.acc}%)` : e.ty === 'cover' ? (String(e.d).startsWith('skin-') ? `🌴 Skin de FUNVS: ${esc(e.nm || e.d)}` : `🎨 Tapa nueva: ${COVERS[e.d] || e.d}`) : e.ty === 'exp' ? `🦴 Vaca salió a repartir a ${esc(e.dest)} (${e.h} h)` : e.ty === 'expok' ? `🦴 Volvió del reparto: +${e.rw?.vc || 0}${e.rw?.post ? ' · postal' : ''}${e.rw?.fig ? ' · figu' : ''}${e.rw?.part ? ' · repuesto' : ''}` : e.ty === 'blend' ? '🌀 Licuadora: 5 → 1 de rareza superior' : e.ty === 'ach' ? '🏅 Trofeo nuevo' : e.ty === 'part' ? `🔧 Piezas para el ${esc(modelOf(e.m)?.name || '')} (${(e.p || []).length})` : e.ty === 'win' ? `🏆 ${esc(modelOf(e.m)?.name || '')} ganó ${esc(e.gp)}` : e.ty === 'daily' ? `🎁 Regalo del día${e.s ? ` (racha ${e.s})` : ''}${e.off ? ` · +${e.off} mientras no estabas` : ''}` : e.ty === 'prode' ? `🔮 Prode: ${esc(e.m || '')}` : e.ty === 'pack' ? `📦 Sobre de ${esc(st.albums[e.a]?.name || '?')}${e.tok ? ' (regalo)' : ''}` : e.ty === 'buy' ? `🛒 Compraste #${esc(e.k.split(':')[1])} de ${esc(st.albums[e.k.split(':')[0]]?.name || '?')}` : e.ty === 'sell' ? '🔁 Vendiste una repetida' : e.ty === 'tok' ? `🎁 Sobre de ${e.k === 'vaca' ? 'Vaca' : 'Vélez'}: ${esc(e.why || '')}` : e.ty === 'done' ? `🏆 Completaste ${esc(st.albums[e.a]?.name || '')}` : e.ty;
       const amt = e => e.ty === 'walk' || e.ty === 'band' ? `+${e.n}` : e.ty === 'trade' ? [(e.rvc ? '+' + e.rvc : ''), (e.gvc ? '−' + e.gvc : '')].filter(Boolean).join(' ') : e.ty === 'up' ? `−${e.cost}` : e.ty === 'wk' ? `+${e.n}` : e.ty === 'stick' ? `+${e.n || 0}` : e.ty === 'cover' ? `−${e.cost}` : e.ty === 'expok' ? `+${e.rw?.vc || 0}` : e.ty === 'daily' || e.ty === 'prode' ? `+${e.n}` : e.ty === 'sell' ? `+${e.n}` : e.ty === 'pack' && !e.tok || e.ty === 'buy' || e.ty === 'part' ? `−${e.cost}` : '';
       body = `<div class="psstats"><div><b>${d.earned.slot}</b><small>por estar</small></div><div><b>${d.earned.daily}</b><small>regalos</small></div><div><b>${d.earned.prode}</b><small>Prode</small></div><div><b>${d.earned.sell}</b><small>ventas</small></div><div><b>${d.spent}</b><small>gastadas</small></div></div>
         <div class="tdlist">${L.map(e => `<div class="tdrow"><div><b>${ic(e)}</b><small>${new Date(e.t).toLocaleString('es-AR', { day:'numeric', month:'numeric', hour:'2-digit', minute:'2-digit' })}</small></div><b class="fgamt">${amt(e)}</b></div>`).join('') || '<div class="empty">Todavía no hay movimientos.</div>'}</div>`;
