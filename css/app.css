@@ -2602,3 +2602,5 @@ body.fseekon:not(.tvlock) main { padding-bottom:calc(var(--padb, 70px) + 26px); 
 .tladdrow { display:flex; flex-wrap:wrap; gap:10px; align-items:center; justify-content:space-between; }
 .tlcnt { display:inline-flex; gap:6px; align-items:center; } .tlcnt b { min-width:22px; text-align:center; }
 .tlpal { display:inline-flex; gap:4px; align-items:center; } .tlsw { width:22px; height:22px; padding:0; border-radius:50%; border:1px solid #ffffff55; }
+.g6add { margin:0 0 12px; } .g6add summary { cursor:pointer; color:var(--mut); font-size:14px; } .g6addf { display:flex; gap:6px; margin:8px 0; } .g6addf input { flex:1; min-width:0; }
+.g6mine { display:inline-flex; align-items:center; gap:6px; margin:0 6px 6px 0; } .g6mine img { width:20px; height:20px; border-radius:50%; } .g6mine button { padding:0 4px; background:none; border:none; color:var(--mut); }

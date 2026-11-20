@@ -7,6 +7,7 @@ await mkdir(dir, { recursive:true });
 if (Date.now() > Date.parse('2026-12-20T12:00:00Z')) { console.log('Especial GTA VI terminado'); process.exit(0); }
 const UA = { 'User-Agent':'Mozilla/5.0 (FUNVS uso personal)', 'Accept-Language':'es-AR,es;q=0.9' };
 const GTA = /\bGTA\b|GTA ?(VI|6)|Grand Theft Auto|Rockstar|Leonida|Vice City/i;
+const GTA6 = /\bGTA\s?(VI|6)\b|GTAVI|GTA6|Grand\s+Theft\s+Auto\s+(VI|6)\b|\bLeonida\b/i;   // videos: solo GTA VI
 const get = async (u, ms = 15000) => { const r = await fetch(u, { headers:UA, signal:AbortSignal.timeout(ms) }); if (!r.ok) throw new Error(r.status); return r.text(); };
 const dec = s => String(s || '').replace(/<!\[CDATA\[([\s\S]*?)\]\]>/g, '$1').replace(/<[^>]+>/g, '').replace(/&amp;/g, '&').replace(/&quot;/g, '"').replace(/&#0?39;|&apos;/g, "'").replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&#(\d+);/g, (_, n) => String.fromCharCode(+n)).replace(/\s+/g, ' ').trim();
 const tag = (x, t) => (x.match(new RegExp(`<${t}[^>]*>([\\s\\S]*?)</${t}>`)) || [])[1] || '';
@@ -54,13 +55,13 @@ await Promise.all(YT.map(async ([name, hs]) => {
     try {
       const x = await get('https://www.youtube.com/feeds/videos.xml?channel_id=' + cid);
       for (const e of x.split('<entry>').slice(1)) {
-        const t = dec(tag(e, 'title')), id = tag(e, 'yt:videoId'); if (!id || !GTA.test(t)) continue;
+        const t = dec(tag(e, 'title')), id = tag(e, 'yt:videoId'); if (!id || !GTA6.test(t)) continue;
         vids.push({ id, t, ch:name, h:h.replace(/^UC:/, ''), date:Date.parse(tag(e, 'published')) || Date.now(), views:+(e.match(/<media:statistics views="(\d+)"/) || [])[1] || 0 });
       }
     } catch {}
   }
 }));
 const vs = new Set();
-const VIDS = [...vids, ...(prev.vids || [])].sort((a, b) => b.date - a.date).filter(v => !['VectorTV', 'Vectorrp'].includes(v.h) && !vs.has(v.id) && vs.add(v.id) && Date.now() - v.date < 40 * 864e5).slice(0, 80);
+const VIDS = [...vids, ...(prev.vids || [])].sort((a, b) => b.date - a.date).filter(v => GTA6.test(v.t) && !['VectorTV', 'Vectorrp'].includes(v.h) && !vs.has(v.id) && vs.add(v.id) && Date.now() - v.date < 40 * 864e5).slice(0, 80);
 await writeFile(dir + '/gta6.json', JSON.stringify({ updated:new Date().toISOString(), news:NEWS, vids:VIDS, chans, fuentes }));
 console.log(`Especial GTA VI: ${NEWS.length} noticias (${JSON.stringify(fuentes)}), ${VIDS.length} videos, canales ${Object.keys(chans).length}`);
