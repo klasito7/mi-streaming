@@ -24,19 +24,19 @@ const RONDA = n => n.replace(/^(Apertura|Clausura) - /, '').replace('Round of 16
 
 // todos los partidos (sin repetir) de cada temporada
 const events = new Map();   // id → partido
-async function sched(lg, id, season) {
-  const j = await getJ(`${B}/${lg}/teams/${id}/schedule?season=${season}`);
+async function sched(lg, id, season, fx = '') {
+  const j = await getJ(`${B}/${lg}/teams/${id}/schedule?season=${season}${fx}`);
   for (const e of j?.events || []) {
     if (events.has(e.id)) continue;
     const c = e.competitions?.[0]; if (!c) continue;
     const H = c.competitors.find(x => x.homeAway === 'home'), A = c.competitors.find(x => x.homeAway === 'away'); if (!H || !A) continue;
     const st = c.status?.type?.state || 'pre', tn = e.seasonType?.name || '';
     const regular = lg === 'arg.copa_lpf' ? /group/i.test(tn) : !PLAYOFF.test(tn);
-    events.set(e.id, { id:e.id, d:e.date, s:season, lg, tn, regular, st, h:H.team.id, a:A.team.id, hn:H.team.displayName, an:A.team.displayName, hs:st === 'post' ? num(H.score) : null, as:st === 'post' ? num(A.score) : null });
+    events.set(e.id, { id:e.id, d:e.date, s:season, lg, tn, regular, st, h:H.team.id, a:A.team.id, hn:H.team.displayName, an:A.team.displayName, hs:st === 'post' ? num(H.score) : null, as:st === 'post' ? num(A.score) : null, ps:H.shootoutScore != null ? [H.shootoutScore, A.shootoutScore] : null });
   }
 }
 for (const t of teams) {
-  await Promise.all([sched('arg.1', t.id, Y), sched('arg.1', t.id, Y - 1), sched('arg.1', t.id, Y - 2), sched('arg.copa_lpf', t.id, Y - 2)]);
+  await Promise.all([sched('arg.1', t.id, Y), sched('arg.1', t.id, Y - 1), sched('arg.1', t.id, Y - 2), sched('arg.copa_lpf', t.id, Y - 2), sched('arg.1', t.id, Y, '&fixture=true')]);
 }
 console.log('Tablas: partidos', events.size);
 
@@ -68,7 +68,7 @@ for (const m of cur) {
   let f;
   if (m.regular) { const kh = T + m.h, ka = T + m.a; cnt[kh] = (cnt[kh] || 0) + 1; cnt[ka] = (cnt[ka] || 0) + 1; f = 'Fecha ' + Math.max(cnt[kh], cnt[ka]); }
   else f = RONDA(m.tn);
-  ((fixture[T] = fixture[T] || {})[f] = fixture[T][f] || []).push({ id:m.id, d:m.d, st:m.st, h:m.h, a:m.a, hs:m.hs, as:m.as });
+  ((fixture[T] = fixture[T] || {})[f] = fixture[T][f] || []).push({ id:m.id, d:m.d, st:m.st, h:m.h, a:m.a, hs:m.hs, as:m.as, ...(m.ps ? { ps:m.ps } : {}) });
 }
 
 const out = { updated:new Date().toISOString(), season:Y, teams:info, anual, promedios, fixture,

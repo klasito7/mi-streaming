@@ -117,7 +117,7 @@ const Partido = (() => {
     const lg = t => t.logo ? `<img src="${esc(t.logo)}" alt="">` : '';
     const mid = m.state === 'pre' ? `<b class="pvs">${hhmm(m.date)}</b><small id="pvCd">${left(m.date)}</small>` : `<b class="pvs">${m.hs} - ${m.as}</b><small>${m.state === 'in' ? '● ' + esc(m.st) : 'Final'}</small>`;
     return `<div class="pvelez ${m.state}"><div class="pvtag">💙 ${m.state === 'post' ? 'HOY JUGÓ VÉLEZ' : m.state === 'in' ? 'ESTÁ JUGANDO VÉLEZ' : 'HOY JUEGA VÉLEZ'}</div>
-      <div class="pvrow"><div class="pvt">${lg(m.h.team)}<span>${esc(m.h.team.shortDisplayName || m.h.team.displayName)}</span></div><div class="pvmid">${mid}</div><div class="pvt">${lg(m.a.team)}<span>${esc(m.a.team.shortDisplayName || m.a.team.displayName)}</span></div></div>
+      <div class="pvrow" data-ficha="${esc(m.id)}" data-lg="${esc(m.lg || 'arg.1')}" title="Tocá para ver la ficha del partido"><div class="pvt">${lg(m.h.team)}<span>${esc(m.h.team.shortDisplayName || m.h.team.displayName)}</span></div><div class="pvmid">${mid}</div><div class="pvt">${lg(m.a.team)}<span>${esc(m.a.team.shortDisplayName || m.a.team.displayName)}</span></div></div>
       ${m.goals?.length ? `<div class="pvgoals">⚽ ${m.goals.map(g => `${esc(g.who)} ${esc(g.min)}`).join(' · ')}</div>` : ''}
       ${m.state !== 'post' ? Ver.chips(ch, `${m.h.team.shortDisplayName} vs ${m.a.team.shortDisplayName}`) : ''}
       ${m.state === 'pre' ? previaHtml(m, previa?.id === m.id ? previa : null) : ''}
