@@ -28,10 +28,11 @@ Ideas y cosas que quedaron para hacer más adelante.
 - 📼 Vivos ya emitidos y videos: con la barra de YouTube para adelantar/atrasar; subtítulos apagados siempre.
 - 🎙️ **Fragotime** (12/11, Jugar → Fragotime): modo podcast con Ulises — guion, pizarra, marcas con minuto, preguntas/respuestas, muro, buscar (programas + Wikipedia), 🎲, 🙈 ocultar (H), 📺 mostrar, 🍃 modo 420.
 
-## 🏙️ Urbe, city builder (Jugar → Ciudad; 22/11)
-- Estilo SimCity / Cities: Skylines (`barrio/index.html`, se abre adentro de FUNVS): mapa 20×20 con zoom y arrastre, calles, zonas R/C/I que crecen solas (30 s, 15 min, 2 h), luz y agua, servicios con alcance, contaminación, valor del suelo, demanda, impuestos, incendios, hitos con bono y ampliaciones de 2 h y 8 h.
-- Partida en `db.barrio` (sincronizada). Avisos por Telegram con FUNVS cerrado: `db.barrio.avisos` (obras, ampliaciones, torres, tope de 8 h de recaudación) → `scripts/alertas.mjs` (±10 min). Se apaga en Telegram → "🏙️ Urbe".
-- Ideas para después: tránsito, transporte público, distritos y políticas, desastres.
+## 🏙️ Urbe, city builder 3D (Jugar → Ciudad; 22/11)
+- Estilo Cities: Skylines (`barrio/index.html`, motor 3D propio en canvas, se abre adentro de FUNVS): calles y avenidas a mano alzada con curvas que se unen solas en cruces, casas que se ponen a mano al costado de la calle (casita, chalet, moderna, dúplex, edificio, torre), plazas y árboles, autitos, cámara con giro/zoom/inclinación, día y noche.
+- Las casas necesitan conexión con la ruta para que lleguen vecinos; obras de 30 s a 8 h, ampliaciones de 2 h (cochera/piso) y 8 h (pileta/terraza), impuestos, valor de la zona, hitos con bono.
+- Partida en `db.barrio` (sincronizada). Avisos por Telegram con FUNVS cerrado: `db.barrio.avisos` (obras, ampliaciones, tope de 8 h de recaudación) → `scripts/alertas.mjs` (±10 min). Se apaga en Telegram → "🏙️ Urbe".
+- Ideas para después: puentes, terreno con lomas, mover casas, colectivos, más modelos de casa.
 
 ## 🌀 Espiral (hecho el 22/11, Jugar → Espiral)
 - Juego tipo Zuma con ritmo (`espiral/index.html`, se abre adentro de FUNVS). Música propia (Hardstyle 150 / Techno 132), un tema del celu (detecta BPM) o música de afuera (YouTube/Spotify con BPM + TAP).
