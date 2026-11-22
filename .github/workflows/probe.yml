@@ -8,7 +8,9 @@ jobs:
   p:
     runs-on: ubuntu-latest
     steps:
-      - run: |
+      - shell: bash
+        run: |
+          set +e
           mkdir o && cd o
           B=https://site.api.espn.com/apis/site/v2/sports/soccer
           curl -s "$B/arg.1/scoreboard?dates=20261115-20261122" -o sb.json
@@ -43,7 +45,8 @@ jobs:
           open(f+'.keys','w').write('\n'.join(walk(d)[:900]))
           PY
           done
-          gzip -k summary.json st2025.json stats.json stats2.json troster.json
-          rm -f st2026.json st2024.json sb_*.json tsched.json team.json sb.json summary.json st2025.json stats.json stats2.json troster.json
-          git init -q && git checkout -q -b probe && git add -A && git -c user.name=p -c user.email=p@p commit -qm probe
+          ls -la > ls.txt
+          gzip -kf summary.json st2025.json stats.json stats2.json troster.json
+          rm -f *.json.gz.tmp; rm -f st2026.json st2024.json sb_*.json tsched.json team.json sb.json summary.json st2025.json stats.json stats2.json troster.json
+          git init -q; git checkout -q -b probe; git add -A && git -c user.name=p -c user.email=p@p commit -qm probe
           git push -qf "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}" probe
