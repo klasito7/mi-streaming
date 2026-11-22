@@ -26,7 +26,7 @@ const Barrio = (() => {
   function render() {
     const v = $('v-barrio');
     if (!frame) {
-      v.innerHTML = '<iframe id="barrioFrame" title="Barrio Idle" src="barrio/?v=172" style="display:block;width:100%;border:0;border-radius:18px;background:#79c6f6"></iframe>';
+      v.innerHTML = '<iframe id="barrioFrame" title="Barrio Idle" src="barrio/?v=173" style="display:block;width:100%;border:0;border-radius:18px;background:#79c6f6"></iframe>';
       frame = $('barrioFrame');
       addEventListener('resize', fit); setInterval(fit, 2000);
     }

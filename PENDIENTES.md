@@ -31,3 +31,8 @@ Ideas y cosas que quedaron para hacer más adelante.
 ## 🏙️ Barrio Idle (hecho el 22/11, Jugar → Barrio)
 - Juego idle de barrio isométrico (`barrio/index.html`, se abre adentro de FUNVS). Partida en `db.barrio` (sincronizada).
 - Avisos por Telegram con FUNVS cerrado: el juego deja en `db.barrio.avisos` lo que va a pasar (mejoras, cofres, depósitos llenos) y `scripts/alertas.mjs` los manda (±10 min). Se apaga en Telegram → "🏙️ Barrio Idle".
+
+## 🌀 Espiral (hecho el 22/11, Jugar → Espiral)
+- Juego tipo Zuma con ritmo (`espiral/index.html`, se abre adentro de FUNVS). Música propia (Hardstyle 150 / Techno 132), un tema del celu (detecta BPM) o música de afuera (YouTube/Spotify con BPM + TAP).
+- Progreso en `db.espiral` (sincronizado). Vaccoins con `Figus.juego()`: 5 por estrella nueva, 20 por jefe, 15 por desafío del día; tope diario de los juegos `ECO.gameCap` = 80.
+- Idea para después: que Barrio Idle también dé vaccoins con `Figus.juego()`.
