@@ -227,13 +227,13 @@ async function domingo() {
   await send(`domingo:${n.ymd}`, parts.join('\n\n'), true);
 }
 
-/* ---------- 🏙️ Barrio Idle: lo que el juego dejó anotado en db.barrio.avisos ---------- */
+/* ---------- 🏙️ Urbe (Jugar → Ciudad): lo que el juego dejó anotado en db.barrio.avisos ---------- */
 async function barrio() {
   if (on.barrio === false) return;
   const now = Date.now();
   for (const a of db.barrio?.avisos || []) {
     if (!a || !a.at || a.at > now || now - a.at > 40 * 60e3) continue;     // ya pasó, hace menos de 40 min
-    await send(`barrio:${a.k}:${a.at}`, `${a.i || '🏙️'} <b>${esc(a.t)}</b>${a.b ? `\n${esc(a.b)}` : ''}\n<i>Barrio Idle</i>`);
+    await send(`barrio:${a.k}:${a.at}`, `${a.i || '🏙️'} <b>${esc(a.t)}</b>${a.b ? `\n${esc(a.b)}` : ''}\n<i>Urbe</i>`);
   }
 }
 

@@ -28,11 +28,12 @@ Ideas y cosas que quedaron para hacer más adelante.
 - 📼 Vivos ya emitidos y videos: con la barra de YouTube para adelantar/atrasar; subtítulos apagados siempre.
 - 🎙️ **Fragotime** (12/11, Jugar → Fragotime): modo podcast con Ulises — guion, pizarra, marcas con minuto, preguntas/respuestas, muro, buscar (programas + Wikipedia), 🎲, 🙈 ocultar (H), 📺 mostrar, 🍃 modo 420.
 
-## 🏙️ Barrio Idle (hecho el 22/11, Jugar → Barrio)
-- Juego idle de barrio isométrico (`barrio/index.html`, se abre adentro de FUNVS). Partida en `db.barrio` (sincronizada).
-- Avisos por Telegram con FUNVS cerrado: el juego deja en `db.barrio.avisos` lo que va a pasar (mejoras, cofres, depósitos llenos) y `scripts/alertas.mjs` los manda (±10 min). Se apaga en Telegram → "🏙️ Barrio Idle".
+## 🏙️ Urbe, city builder (Jugar → Ciudad; 22/11)
+- Estilo SimCity / Cities: Skylines (`barrio/index.html`, se abre adentro de FUNVS): mapa 20×20 con zoom y arrastre, calles, zonas R/C/I que crecen solas (30 s, 15 min, 2 h), luz y agua, servicios con alcance, contaminación, valor del suelo, demanda, impuestos, incendios, hitos con bono y ampliaciones de 2 h y 8 h.
+- Partida en `db.barrio` (sincronizada). Avisos por Telegram con FUNVS cerrado: `db.barrio.avisos` (obras, ampliaciones, torres, tope de 8 h de recaudación) → `scripts/alertas.mjs` (±10 min). Se apaga en Telegram → "🏙️ Urbe".
+- Ideas para después: tránsito, transporte público, distritos y políticas, desastres.
 
 ## 🌀 Espiral (hecho el 22/11, Jugar → Espiral)
 - Juego tipo Zuma con ritmo (`espiral/index.html`, se abre adentro de FUNVS). Música propia (Hardstyle 150 / Techno 132), un tema del celu (detecta BPM) o música de afuera (YouTube/Spotify con BPM + TAP).
 - Progreso en `db.espiral` (sincronizado). Vaccoins con `Figus.juego()`: 5 por estrella nueva, 20 por jefe, 15 por desafío del día; tope diario de los juegos `ECO.gameCap` = 80.
-- Idea para después: que Barrio Idle también dé vaccoins con `Figus.juego()`.
+- Idea para después: que Urbe (la ciudad) también dé vaccoins con `Figus.juego()`.
