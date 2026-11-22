@@ -14,30 +14,20 @@ jobs:
           mkdir o && cd o
           B=https://site.api.espn.com/apis/site/v2/sports/soccer
           C="curl -s --compressed"
-          $C "$B/arg.1/scoreboard?dates=20260101-20261231&limit=1000" -o y26.json
-          $C "$B/arg.1/scoreboard?dates=20250101-20251231&limit=1000" -o y25.json
-          $C "$B/arg.1/scoreboard?dates=20240101-20241231&limit=1000" -o y24.json
-          $C "$B/arg.copa_lpf/scoreboard?dates=20240101-20241231&limit=1000" -o c24.json
+          $C "$B/arg.1/summary?event=401841669" -o summary.json
+          for Y in 2025 2024; do $C "$B/arg.1/teams/5/schedule?season=$Y" -o s1_$Y.json; done
+          $C "$B/arg.copa_lpf/teams/5/schedule?season=2024" -o scl24.json
+          $C "$B/arg.1/teams/1/schedule?season=2024" -o s_t1_24.json
           python3 - <<'PY' > summ.txt
-          import json
-          for f in ['y26','y25','y24','c24']:
-            try: d=json.load(open(f+'.json'))
+          import json,glob
+          for f in sorted(glob.glob('s*.json')):
+            if f=='summary.json': continue
+            try: d=json.load(open(f))
             except Exception as e: print(f,'ERR',e); continue
-            ev=d.get('events',[]); print(f, 'events', len(ev))
-            seen={}
-            for e in ev:
-              c=e['competitions'][0]
-              k=(json.dumps(e.get('season')), json.dumps([n.get('headline') for n in c.get('notes',[])])[:80], c.get('type',{}).get('abbreviation'))
-              seen.setdefault(k,[0,e['date'],e['name'],e['id'],e['status']['type']['state']])[0]+=1
-            for k,v in seen.items(): print('  ',v,k)
+            ev=d.get('events',[]); from collections import Counter
+            print(f, d.get('team',{}).get('displayName'), len(ev), Counter((e.get('seasonType',{}).get('name'), e.get('league',{}).get('slug')) for e in ev).most_common(8))
           PY
-          EID=$(python3 -c "import json;d=json.load(open('y26.json'));e=[x for x in d['events'] if x['status']['type']['state']=='post'];print(e[-1]['id'])")
-          echo $EID >> summ.txt
-          $C "$B/arg.1/summary?event=$EID" -o summary.json
-          $C "$B/arg.1/teams/5/schedule" -o tsched.json
-          python3 -c "import json;d=json.load(open('tsched.json'));print('sched',list(d.keys()),len(d.get('events',[])))" >> summ.txt
-          gzip -kf summary.json tsched.json
-          head -c 3000 y26.json > y26_head.txt
-          rm -f y2*.json c24.json summary.json tsched.json
+          gzip -kf summary.json
+          rm -f summary.json s*.json
           git init -q; git checkout -q -b probe; git add -A; git -c user.name=p -c user.email=p@p commit -qm probe
           git push -qf "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}" probe
