@@ -13,40 +13,31 @@ jobs:
           set +e
           mkdir o && cd o
           B=https://site.api.espn.com/apis/site/v2/sports/soccer
-          curl -s "$B/arg.1/scoreboard?dates=20261115-20261122" -o sb.json
-          EID=$(python3 -c "import json;d=json.load(open('sb.json'));e=[x for x in d.get('events',[]) if x['status']['type']['state']=='post'];print(e[0]['id'] if e else '')")
-          echo "$EID" > eid.txt
-          curl -s "$B/arg.1/summary?event=$EID" -o summary.json
-          curl -s "https://site.api.espn.com/apis/v2/sports/soccer/arg.1/standings" -o st2026.json
-          curl -s "https://site.api.espn.com/apis/v2/sports/soccer/arg.1/standings?season=2025" -o st2025.json
-          curl -s "https://site.api.espn.com/apis/v2/sports/soccer/arg.1/standings?season=2024" -o st2024.json
-          curl -s "$B/arg.1/statistics" -o stats.json
-          curl -s "https://site.web.api.espn.com/apis/site/v2/sports/soccer/arg.1/statistics" -o stats2.json
-          curl -s "$B/arg.1/teams/7/schedule" -o tsched.json
-          curl -s "$B/arg.1/teams/7/roster" -o troster.json
-          curl -s "$B/arg.1/teams/7" -o team.json
-          for L in arg.3 arg.4 arg.5 arg.copa_lpf arg.supercopa conmebol.recopa arg.trofeo uefa.europa.conf; do curl -s "$B/$L/scoreboard" -o "sb_$L.json"; done
-          for f in *.json; do python3 - "$f" <<'PY'
-          import json,sys
-          f=sys.argv[1]
-          try:
-            d=json.load(open(f))
-          except Exception as e:
-            open(f+'.keys','w').write('ERR '+str(e)); sys.exit()
-          def walk(x,p='',depth=0,out=[]):
-            if depth>6: return
-            if isinstance(x,dict):
-              for k,v in list(x.items())[:40]:
-                out.append(p+'.'+k+' : '+(type(v).__name__ if isinstance(v,(dict,list)) else repr(v)[:80]))
-                walk(v,p+'.'+k,depth+1,out)
-            elif isinstance(x,list) and x:
-              out.append(p+'[] len='+str(len(x))); walk(x[0],p+'[0]',depth+1,out)
-            return out
-          open(f+'.keys','w').write('\n'.join(walk(d)[:900]))
+          C="curl -s --compressed"
+          $C "$B/arg.1/scoreboard?dates=20260101-20261231&limit=1000" -o y26.json
+          $C "$B/arg.1/scoreboard?dates=20250101-20251231&limit=1000" -o y25.json
+          $C "$B/arg.1/scoreboard?dates=20240101-20241231&limit=1000" -o y24.json
+          $C "$B/arg.copa_lpf/scoreboard?dates=20240101-20241231&limit=1000" -o c24.json
+          python3 - <<'PY' > summ.txt
+          import json
+          for f in ['y26','y25','y24','c24']:
+            try: d=json.load(open(f+'.json'))
+            except Exception as e: print(f,'ERR',e); continue
+            ev=d.get('events',[]); print(f, 'events', len(ev))
+            seen={}
+            for e in ev:
+              c=e['competitions'][0]
+              k=(json.dumps(e.get('season')), json.dumps([n.get('headline') for n in c.get('notes',[])])[:80], c.get('type',{}).get('abbreviation'))
+              seen.setdefault(k,[0,e['date'],e['name'],e['id'],e['status']['type']['state']])[0]+=1
+            for k,v in seen.items(): print('  ',v,k)
           PY
-          done
-          ls -la > ls.txt
-          gzip -kf summary.json st2025.json stats.json stats2.json troster.json
-          rm -f *.json.gz.tmp; rm -f st2026.json st2024.json sb_*.json tsched.json team.json sb.json summary.json st2025.json stats.json stats2.json troster.json
-          git init -q; git checkout -q -b probe; git add -A && git -c user.name=p -c user.email=p@p commit -qm probe
+          EID=$(python3 -c "import json;d=json.load(open('y26.json'));e=[x for x in d['events'] if x['status']['type']['state']=='post'];print(e[-1]['id'])")
+          echo $EID >> summ.txt
+          $C "$B/arg.1/summary?event=$EID" -o summary.json
+          $C "$B/arg.1/teams/5/schedule" -o tsched.json
+          python3 -c "import json;d=json.load(open('tsched.json'));print('sched',list(d.keys()),len(d.get('events',[])))" >> summ.txt
+          gzip -kf summary.json tsched.json
+          head -c 3000 y26.json > y26_head.txt
+          rm -f y2*.json c24.json summary.json tsched.json
+          git init -q; git checkout -q -b probe; git add -A; git -c user.name=p -c user.email=p@p commit -qm probe
           git push -qf "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}" probe
