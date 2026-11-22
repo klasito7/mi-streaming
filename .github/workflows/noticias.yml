@@ -45,6 +45,10 @@ jobs:
         continue-on-error: true
         timeout-minutes: 5
         run: node scripts/fetch-estadios.mjs /tmp/datos "$GITHUB_REPOSITORY"
+      - name: Tablas de la Liga (Anual, Promedios y fixture por fecha, cada 3 horas)
+        continue-on-error: true
+        timeout-minutes: 6
+        run: node scripts/fetch-tablas.mjs /tmp/datos "$GITHUB_REPOSITORY"
       - name: Álbum del día (Wikidata + YouTube, una vez por día)
         continue-on-error: true
         timeout-minutes: 3
