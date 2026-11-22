@@ -27,3 +27,7 @@ Ideas y cosas que quedaron para hacer más adelante.
 - 🧭 **Nichos** (12/11, Ver → Nichos): base de links propia + 🎲 por tiempo disponible y rareza.
 - 📼 Vivos ya emitidos y videos: con la barra de YouTube para adelantar/atrasar; subtítulos apagados siempre.
 - 🎙️ **Fragotime** (12/11, Jugar → Fragotime): modo podcast con Ulises — guion, pizarra, marcas con minuto, preguntas/respuestas, muro, buscar (programas + Wikipedia), 🎲, 🙈 ocultar (H), 📺 mostrar, 🍃 modo 420.
+
+## 🏙️ Barrio Idle (hecho el 22/11, Jugar → Barrio)
+- Juego idle de barrio isométrico (`barrio/index.html`, se abre adentro de FUNVS). Partida en `db.barrio` (sincronizada).
+- Avisos por Telegram con FUNVS cerrado: el juego deja en `db.barrio.avisos` lo que va a pasar (mejoras, cofres, depósitos llenos) y `scripts/alertas.mjs` los manda (±10 min). Se apaga en Telegram → "🏙️ Barrio Idle".

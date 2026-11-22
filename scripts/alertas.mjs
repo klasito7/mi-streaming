@@ -227,10 +227,20 @@ async function domingo() {
   await send(`domingo:${n.ymd}`, parts.join('\n\n'), true);
 }
 
+/* ---------- 🏙️ Barrio Idle: lo que el juego dejó anotado en db.barrio.avisos ---------- */
+async function barrio() {
+  if (on.barrio === false) return;
+  const now = Date.now();
+  for (const a of db.barrio?.avisos || []) {
+    if (!a || !a.at || a.at > now || now - a.at > 40 * 60e3) continue;     // ya pasó, hace menos de 40 min
+    await send(`barrio:${a.k}:${a.at}`, `${a.i || '🏙️'} <b>${esc(a.t)}</b>${a.b ? `\n${esc(a.b)}` : ''}\n<i>Barrio Idle</i>`);
+  }
+}
+
 /* ---------- vuelta principal ---------- */
 const until = Date.now() + 9 * 60e3;
 let hot = await futbol();
-await recordatorios(); await domingo(); await canales(); await motor(); await clasicos(); await actualidad(); await resumenes(); await diario();
+await recordatorios(); await domingo(); await canales(); await motor(); await clasicos(); await actualidad(); await resumenes(); await diario(); await barrio();
 while (hot && !process.env.NO_LOOP && Date.now() + 45e3 < until) { await writeFile(stFile, JSON.stringify(st)); await sleep(45e3); hot = await futbol(); }
 await writeFile(stFile, JSON.stringify(st));
 console.log(`Telegram: ${sentCount} aviso(s) enviado(s)${first ? ' (primera corrida: aprendí el estado)' : ''}`);
