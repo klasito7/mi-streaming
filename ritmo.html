@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+<title>Ritmo · FUNVS</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;800&display=swap" rel="stylesheet">
+<style>
+/* VOICE: estadio de noche, intenso. IDEA: pantalla de juego de ritmo con los colores de Vélez.
+   PICTURE: el video de fondo + círculos azules con borde blanco. COLOUR/TYPE: azul, blanco, negro; Archivo 800.
+   LAYOUT: menú en una columna; juego a pantalla completa. */
+:root{--bg:#060c1f;--azul:#1b4fd8;--azul2:#7fa6ff;--blanco:#f4f7ff;--gris:#8b96b5;--rojo:#ff4d5e}
+*{box-sizing:border-box;min-width:0;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;height:100%;background:var(--bg);color:var(--blanco);font:16px/1.5 Archivo,system-ui,sans-serif;overflow:hidden}
+#stage{position:fixed;inset:0;pointer-events:none;z-index:0}
+#stage iframe,#yt{position:absolute;inset:0;width:100%;height:100%;border:0}
+#veil{position:fixed;inset:0;z-index:1;pointer-events:none;background:radial-gradient(ellipse at 50% 40%,rgba(6,12,31,.55),rgba(6,12,31,.93))}
+canvas{position:fixed;inset:0;z-index:2;width:100%;height:100%;touch-action:none;display:none}
+#hud{position:fixed;z-index:3;top:0;left:0;right:0;display:none;justify-content:space-between;align-items:center;gap:10px;padding:max(10px,env(safe-area-inset-top)) 14px 0;pointer-events:none;font-weight:800}
+#hud .pts{font-size:26px;font-variant-numeric:tabular-nums}
+#hud .meta{color:var(--azul2);font-size:15px;white-space:nowrap}
+#hud button{pointer-events:auto;min-height:42px}
+.screen{position:fixed;inset:0;z-index:4;overflow-y:auto;padding:max(16px,env(safe-area-inset-top)) 16px max(28px,env(safe-area-inset-bottom));display:none}
+.screen.on{display:block}
+#pausa,#res{background:rgba(6,12,31,.82)}
+.card{max-width:520px;margin:0 auto;background:rgba(6,12,31,.72);border:1px solid rgba(255,255,255,.08);border-radius:20px;padding:18px}
+h1{font-weight:800;font-size:44px;line-height:1.05;margin:4px 0;letter-spacing:-.02em}
+h2{font-weight:800;font-size:32px;line-height:1.05;margin:4px 0 12px}
+.sub{color:var(--gris);margin:0 0 6px}
+#tema{font-weight:800;color:var(--azul2);min-height:24px;margin:10px 0 0;overflow-wrap:anywhere}
+label{display:block;font-size:14px;color:var(--gris);margin:14px 0 6px}
+input,select{width:100%;font:inherit;font-size:16px;color:var(--blanco);background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.16);border-radius:12px;padding:11px 12px;min-height:46px}
+input[type=range]{padding:0;border:0;background:none;accent-color:var(--azul2)}
+select option{background:#0b1430}
+input:focus,select:focus,button:focus-visible{outline:2px solid var(--azul2);outline-offset:2px}
+.row{display:flex;gap:10px;flex-wrap:wrap}.row>*{flex:1 1 130px}
+button{font:inherit;font-weight:800;color:var(--blanco);background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.18);border-radius:12px;min-height:46px;padding:10px 14px;cursor:pointer}
+button.main{background:var(--azul);border-color:var(--azul);font-size:18px}
+button:disabled{opacity:.35;cursor:default}
+.chips{display:flex;gap:8px;flex-wrap:wrap}.chips button{flex:none;font-weight:500;font-size:15px;min-height:40px;border-radius:999px}
+.chips button.sel{background:var(--blanco);color:var(--bg)}
+.hint{font-size:13px;color:var(--gris);margin:6px 0 0}
+.sep{height:1px;background:rgba(255,255,255,.1);margin:18px 0 4px}
+.file{position:relative;overflow:hidden}.file input{position:absolute;inset:0;opacity:0;cursor:pointer}
+.big{font-size:56px;font-weight:800;line-height:1;font-variant-numeric:tabular-nums}
+.stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin:14px 0;text-align:center}
+.stats div{background:rgba(255,255,255,.06);border-radius:12px;padding:8px 4px}
+.stats b{display:block;font-size:22px}.stats span{font-size:13px;color:var(--gris)}
+.vac{font-size:20px;font-weight:800;color:var(--azul2);margin:6px 0 14px}
+.nudge{display:flex;align-items:center;gap:10px}.nudge b{flex:1;text-align:center;font-variant-numeric:tabular-nums}
+#toast{position:fixed;z-index:9;left:50%;bottom:max(24px,env(safe-area-inset-bottom));transform:translateX(-50%);background:var(--blanco);color:var(--bg);font-weight:800;padding:10px 16px;border-radius:12px;display:none;max-width:90vw;text-align:center}
+</style>
+</head>
+<body>
+<div id="stage"></div>
+<div id="veil"></div>
+<canvas id="cv"></canvas>
+
+<div id="hud">
+  <div><div class="pts" id="hPts">0</div><div class="meta" id="hMeta">x0 · 100%</div></div>
+  <div class="row" style="flex:none;gap:8px">
+    <button id="btnListo" style="display:none">Listo</button>
+    <button id="btnPausa" aria-label="Pausa">❚❚</button>
+  </div>
+</div>
+
+<section class="screen on" id="menu">
+ <div class="card">
+  <h1>Ritmo</h1>
+  <p class="sub">Tocá los círculos al ritmo de tu música.</p>
+
+  <label for="url">Tema de YouTube</label>
+  <div class="row">
+    <input id="url" placeholder="Pegá el link del tema" autocomplete="off" style="flex:3 1 200px">
+    <button id="btnCargar" style="flex:1 1 90px">Cargar</button>
+  </div>
+  <div class="row" style="margin-top:10px">
+    <button class="file">o elegí un MP3 del celu<input type="file" id="archivo" accept="audio/*"></button>
+  </div>
+  <div id="tema"></div>
+
+  <div class="sep"></div>
+  <label>Estilo</label>
+  <div class="chips" id="chips"></div>
+  <p class="hint" id="hintEstilo">Elegí un estilo para cargar un BPM de base, después lo ajustás.</p>
+
+  <div class="row">
+    <div><label for="bpm">BPM</label><input id="bpm" type="number" inputmode="decimal" step="0.1" value="95"></div>
+    <div><label for="off">Primer golpe (seg)</label><input id="off" type="number" inputmode="decimal" step="0.01" value="0"></div>
+  </div>
+  <div class="row" style="margin-top:10px">
+    <button id="btnEsc" disabled>▶ Escuchar</button>
+    <button id="btnTap" disabled>Tocá al ritmo</button>
+    <button id="btnMarca" disabled>Marcar primer golpe</button>
+  </div>
+  <p class="hint">Poné "Escuchar", tocá "Tocá al ritmo" con cada golpe para sacar el BPM y apretá "Marcar primer golpe" justo cuando entra el beat.</p>
+
+  <div class="row">
+    <div><label for="dens">Notas</label>
+      <select id="dens"><option value="medio">Medio tiempo</option><option value="uno">1 por golpe</option><option value="dembow">Dembow</option><option value="dos">2 por golpe</option></select></div>
+    <div><label for="dif">Dificultad</label>
+      <select id="dif"><option value="facil">Fácil</option><option value="normal" selected>Normal</option><option value="dificil">Difícil</option></select></div>
+  </div>
+
+  <label for="lat">Retraso del audio: <b id="latV">0 ms</b></label>
+  <input id="lat" type="range" min="-300" max="300" step="10" value="0">
+  <p class="hint">Con auriculares Bluetooth subilo (150–250 ms) si sentís que tocás tarde.</p>
+
+  <div class="sep"></div>
+  <div style="display:grid;gap:10px;margin-top:14px">
+    <button class="main" id="btnJugar" disabled>Jugar con BPM</button>
+    <div class="row">
+      <button id="btnGrabar" disabled>● Grabar mapa</button>
+      <button id="btnMapa" disabled>Jugar mi mapa</button>
+    </div>
+  </div>
+  <p class="hint">Grabar: escuchás el tema y tocás la pantalla donde sentís el ritmo. Ideal para tango o temas sin tempo fijo.</p>
+  <p class="hint" id="totVac"></p>
+ </div>
+</section>
+
+<section class="screen" id="pausa">
+ <div class="card" style="margin-top:12vh">
+  <h2>Pausa</h2>
+  <label>Sincro de este tema</label>
+  <div class="nudge"><button id="nMenos">−10 ms</button><b id="nVal">0 ms</b><button id="nMas">+10 ms</button></div>
+  <p class="hint">Si los círculos llegan antes que el golpe, sumá; si llegan tarde, restá. Queda guardado.</p>
+  <div style="display:grid;gap:10px;margin-top:16px">
+    <button class="main" id="btnSeguir">Seguir</button>
+    <div class="row"><button id="btnReiniciar">Reiniciar</button><button id="btnSalir">Salir</button></div>
+  </div>
+ </div>
+</section>
+
+<section class="screen" id="res">
+ <div class="card" style="margin-top:8vh">
+  <p class="sub" id="rTema"></p>
+  <div class="big" id="rPts">0</div>
+  <p class="sub" id="rBest"></p>
+  <div class="stats">
+    <div><b id="r0">0</b><span>300</span></div><div><b id="r1">0</b><span>100</span></div>
+    <div><b id="r2">0</b><span>50</span></div><div><b id="r3">0</b><span>Errados</span></div>
+  </div>
+  <p class="sub" id="rAcc"></p>
+  <div class="vac" id="rVac"></div>
+  <div class="row"><button class="main" id="btnOtra">Otra vez</button><button id="btnMenu">Menú</button></div>
+ </div>
+</section>
+
+<div id="toast"></div>
+
+<script>
+{
+const $=s=>document.querySelector(s);
+const LS={get(k,d){try{const v=localStorage.getItem(k);return v==null?d:JSON.parse(v)}catch(e){return d}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}};
+const VAC_KEY='funvs_vaccoins_ritmo'; // vaccoins ganadas acá; FUNVS las puede sumar a la billetera
+const DIF={facil:{ar:1.2,r:.12,w:[.08,.14,.2]},normal:{ar:.9,r:.10,w:[.06,.11,.16]},dificil:{ar:.65,r:.085,w:[.045,.09,.13]}};
+const PAT={uno:[0,1,2,3],dos:[0,.5,1,1.5,2,2.5,3,3.5],medio:[0,2],dembow:[0,.75,1.5,2,2.75,3.5]};
+const PRESETS=[
+ {n:'Reggaetón',bpm:95,dens:'dembow',h:'Dembow clásico. La mayoría va entre 88 y 100 BPM.'},
+ {n:'Milo J',bpm:90,dens:'uno',h:'Depende del tema (80–100 BPM). Si se corre, usá Grabar.'},
+ {n:'Dubstep',bpm:140,dens:'uno',h:'Casi siempre 140 BPM. En Difícil probá "2 por golpe" en los drops.'},
+ {n:'DnB',bpm:174,dens:'uno',h:'170–175 BPM. Si es mucho, pasá a "Medio tiempo".'},
+ {n:'Tango',bpm:0,dens:'',h:'El tango estira y acelera el tempo: usá "● Grabar mapa".'}];
+const toast=m=>{const t=$('#toast');t.textContent=m;t.style.display='block';clearTimeout(toast.k);toast.k=setTimeout(()=>t.style.display='none',2600)};
+const cv=$('#cv'),ctx=cv.getContext('2d');
+let src=null,ytP=null,mode='menu',notes=[],st=null,dif=DIF.normal,rec=null,W=0,H=0,F={},rad=40,ptr={x:0,y:0};
+const cfg={bpm:95,off:0,dens:'dembow',dif:'normal',lat:LS.get('ritmo_lat',0)};
+
+/* ---------- reloj sincronizado con el tema ---------- */
+const clk={base:0,perf:0,on:false,raw:-1};
+function setPlaying(on){clk.on=on;clk.base=src?src.time():0;clk.perf=performance.now();clk.raw=clk.base}
+function songT(){
+  if(!src)return 0;
+  const p=performance.now();let est=clk.on?clk.base+(p-clk.perf)/1000:clk.base;
+  const raw=src.time();
+  if(raw!==clk.raw){clk.raw=raw;const d=raw-est;est=(!clk.on||Math.abs(d)>.12)?raw:est+d*.15;clk.base=est;clk.perf=p}
+  return est;
+}
+const gameT=()=>songT()-cfg.lat/1000;
+
+/* ---------- fuentes: YouTube o archivo ---------- */
+function ytId(u){u=u.trim();const m=u.match(/(?:v=|youtu\.be\/|shorts\/|embed\/|live\/)([\w-]{11})/);return m?m[1]:(/^[\w-]{11}$/.test(u)?u:null)}
+function ytApi(){return new Promise(res=>{if(window.YT&&YT.Player)return res();window.onYouTubeIframeAPIReady=res;const s=document.createElement('script');s.src='https://www.youtube.com/iframe_api';document.head.appendChild(s)})}
+async function cargarYT(id){
+  $('#tema').textContent='Cargando…';
+  await ytApi();
+  if(src)src.destroy();
+  $('#stage').innerHTML='<div id="yt"></div>';
+  await new Promise(res=>{ytP=new YT.Player('yt',{videoId:id,playerVars:{playsinline:1,controls:0,disablekb:1,rel:0,modestbranding:1,iv_load_policy:3,fs:0},
+    events:{onReady:res,onStateChange:e=>{if(e.data===1)setPlaying(true);else if(e.data===2||e.data===3)setPlaying(false);else if(e.data===0)fin()},
+            onError:()=>{toast('Ese video no se puede reproducir incrustado');$('#tema').textContent=''}}})});
+  src={key:'yt:'+id,play(){ytP.playVideo()},pause(){ytP.pauseVideo()},seek(t){ytP.seekTo(t,true)},time(){return ytP.getCurrentTime()||0},
+       dur(){return ytP.getDuration()||0},title(){try{return ytP.getVideoData().title||'Tema de YouTube'}catch(e){return 'Tema de YouTube'}},destroy(){try{ytP.destroy()}catch(e){}}};
+  listo();
+}
+const aud=new Audio();aud.preload='auto';
+aud.onplaying=()=>setPlaying(true);aud.onpause=()=>setPlaying(false);aud.onwaiting=()=>setPlaying(false);aud.onended=()=>fin();
+function cargarArchivo(f){
+  if(src)src.destroy();$('#stage').innerHTML='';aud.src=URL.createObjectURL(f);
+  src={key:'file:'+f.name,play(){aud.play().catch(()=>toast('Tocá de nuevo para reproducir'))},pause(){aud.pause()},seek(t){aud.currentTime=t},time(){return aud.currentTime},
+       dur(){return isFinite(aud.duration)?aud.duration:0},title(){return f.name.replace(/\.[^.]+$/,'')},destroy(){aud.pause()}};
+  listo();
+}
+function fin(){setPlaying(false);if(mode==='play')terminar();else if(mode==='rec')terminarGrab();else $('#btnEsc').textContent='▶ Escuchar'}
+function listo(){
+  $('#tema').textContent='♪ '+src.title();
+  const s=LS.get('ritmo_cfg_'+src.key,null);
+  if(s){$('#bpm').value=s.bpm;$('#off').value=s.off;$('#dens').value=s.dens;$('#dif').value=s.dif}
+  ['#btnEsc','#btnTap','#btnMarca','#btnJugar','#btnGrabar'].forEach(b=>$(b).disabled=false);
+  $('#btnMapa').disabled=!LS.get('ritmo_map_'+src.key,null);
+  $('#btnEsc').textContent='▶ Escuchar';
+}
+function leerCfg(){cfg.bpm=parseFloat($('#bpm').value)||0;cfg.off=parseFloat($('#off').value)||0;cfg.dens=$('#dens').value;cfg.dif=$('#dif').value}
+function guardarCfg(){LS.set('ritmo_cfg_'+src.key,{bpm:cfg.bpm,off:+cfg.off.toFixed(3),dens:cfg.dens,dif:cfg.dif})}
+
+/* ---------- mapa de notas ---------- */
+function rng(a){return()=>{a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+function hash(s){let h=2166136261;for(const c of s)h=Math.imul(h^c.charCodeAt(0),16777619);return h|0}
+function tiemposBPM(){
+  const beat=60/cfg.bpm,end=(src.dur()||900)-.4,out=[];
+  for(let bar=0;;bar++){const b0=cfg.off+bar*4*beat;if(b0>end)break;
+    const p=bar%8===7?PAT.medio:PAT[cfg.dens]; // cada 8 compases, un respiro
+    for(const x of p){const t=b0+x*beat;if(t>=1&&t<=end)out.push(t)}}
+  return out;
+}
+function armarNotas(times){
+  const R=rng(hash(src.key+cfg.dens));let x=.5,y=.5,ang=R()*6.28;
+  return times.map((t,i)=>{
+    if(i){const d=Math.min(.34,.1+(t-times[i-1])*.3);ang+=(R()*2-1)*1.3;
+      let nx=x+Math.cos(ang)*d;if(nx<0||nx>1){ang=Math.PI-ang;nx=x+Math.cos(ang)*d}
+      let ny=y+Math.sin(ang)*d;if(ny<0||ny>1){ang=-ang;ny=y+Math.sin(ang)*d}
+      x=Math.max(0,Math.min(1,nx));y=Math.max(0,Math.min(1,ny))}
+    return {t,x,y,n:i%8+1,j:null};
+  });
+}
+
+/* ---------- pantallas ---------- */
+function ver(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.toggle('on',s.id===id));
+  const juego=id==='game'||id==='pausa';
+  cv.style.display=juego?'block':'none';$('#hud').style.display=juego?'flex':'none';
+  if(id==='menu')mostrarVac();
+}
+function resize(){
+  const dpr=Math.min(2,devicePixelRatio||1);W=innerWidth;H=innerHeight;cv.width=W*dpr;cv.height=H*dpr;ctx.setTransform(dpr,0,0,dpr,0,0);
+  rad=Math.min(W,H)*dif.r;const top=78+rad*.6;
+  F={x:rad*1.3,y:top,w:W-rad*2.6,h:H-top-rad*1.4};
+}
+addEventListener('resize',resize);
+const pos=n=>[F.x+n.x*F.w,F.y+n.y*F.h];
+
+/* ---------- jugar ---------- */
+function empezar(kind){
+  leerCfg();
+  if(kind==='bpm'&&!(cfg.bpm>=40&&cfg.bpm<=300))return toast('Poné un BPM entre 40 y 300');
+  guardarCfg();
+  const times=kind==='map'?LS.get('ritmo_map_'+src.key,{t:[]}).t:tiemposBPM();
+  if(!times.length)return toast('No hay notas para jugar');
+  dif=DIF[cfg.dif];notes=armarNotas(times);resize();
+  st={pts:0,combo:0,max:0,c:[0,0,0,0],fx:[],kind,armed:false};
+  $('#btnListo').style.display='none';$('#btnPausa').style.display='';
+  ver('game');mode='play';arrancar();
+}
+function arrancar(){src.pause();clk.on=false;clk.base=0;clk.raw=-1;src.seek(0);src.play()}
+function juzgar(n,k,g){
+  n.j=k;st.c[k]++;
+  if(k<3){st.combo++;st.max=Math.max(st.max,st.combo);st.pts+=Math.round([300,100,50][k]*(1+Math.floor(st.combo/10)*.1))}else st.combo=0;
+  const [x,y]=pos(n);st.fx.push({t:g,x,y,k});
+}
+const acc=()=>{const c=st.c,tot=c[0]+c[1]+c[2]+c[3];return tot?(300*c[0]+100*c[1]+50*c[2])/(300*tot):1};
+function tocar(px,py){
+  if(mode==='rec')return grabarTap();
+  if(mode!=='play'||!st.armed)return;
+  const g=gameT();
+  for(const n of notes){
+    if(n.j!==null)continue;if(n.t-g>.4)break;
+    const [x,y]=pos(n);
+    if(Math.hypot(px-x,py-y)<=rad*1.15){const d=Math.abs(g-n.t);
+      if(d<=dif.w[2])juzgar(n,d<=dif.w[0]?0:d<=dif.w[1]?1:2,g);else juzgar(n,3,g);return}
+  }
+}
+cv.addEventListener('pointerdown',e=>{e.preventDefault();ptr.x=e.clientX;ptr.y=e.clientY;tocar(e.clientX,e.clientY)});
+cv.addEventListener('pointermove',e=>{ptr.x=e.clientX;ptr.y=e.clientY});
+addEventListener('keydown',e=>{
+  if(e.repeat)return;
+  if(mode==='play'&&/^[zxZX]$/.test(e.key))tocar(ptr.x,ptr.y);
+  else if(mode==='rec'&&e.key!=='Escape'){e.preventDefault();grabarTap()}
+  else if(e.key==='Escape'&&mode==='play')pausar();
+});
+
+function draw(g){
+  ctx.clearRect(0,0,W,H);
+  if(g===null){ctx.fillStyle='#8b96b5';ctx.font='800 20px Archivo,sans-serif';ctx.textAlign='center';ctx.fillText('Cargando el tema…',W/2,H/2);return}
+  const vis=[];
+  for(const n of notes){if(n.t>g+dif.ar)break;if(n.j===null&&n.t>g-dif.w[2])vis.push(n)}
+  ctx.lineWidth=2;ctx.strokeStyle='rgba(244,247,255,.22)';ctx.setLineDash([4,8]);
+  for(let i=0;i<vis.length-1;i++){const [a,b]=pos(vis[i]),[c,d]=pos(vis[i+1]);ctx.beginPath();ctx.moveTo(a,b);ctx.lineTo(c,d);ctx.stroke()}
+  ctx.setLineDash([]);
+  ctx.textAlign='center';ctx.textBaseline='middle';
+  for(let i=vis.length-1;i>=0;i--){
+    const n=vis[i],[x,y]=pos(n),k=(n.t-g)/dif.ar;
+    ctx.globalAlpha=Math.max(0,Math.min(1,(1-k)*3));
+    if(k>0){ctx.strokeStyle='#f4f7ff';ctx.lineWidth=3;ctx.beginPath();ctx.arc(x,y,rad*(1+k*2.2),0,7);ctx.stroke()}
+    const gr=ctx.createRadialGradient(x-rad*.35,y-rad*.35,rad*.1,x,y,rad);gr.addColorStop(0,'#4a78f5');gr.addColorStop(1,'#0e2a85');
+    ctx.fillStyle=gr;ctx.beginPath();ctx.arc(x,y,rad,0,7);ctx.fill();
+    ctx.lineWidth=rad*.12;ctx.strokeStyle='#f4f7ff';ctx.stroke();
+    ctx.fillStyle='#fff';ctx.font=`800 ${rad*.8}px Archivo,sans-serif`;ctx.fillText(n.n,x,y+rad*.05);
+  }
+  st.fx=st.fx.filter(f=>g-f.t<.5&&g>=f.t-.05);
+  for(const f of st.fx){const p=Math.max(0,(g-f.t)/.5);ctx.globalAlpha=1-p;
+    if(f.k<3){ctx.strokeStyle='#f4f7ff';ctx.lineWidth=4*(1-p);ctx.beginPath();ctx.arc(f.x,f.y,rad*(1+p*.7),0,7);ctx.stroke()}
+    ctx.fillStyle=['#ffffff','#7fa6ff','#8b96b5','#ff4d5e'][f.k];ctx.font=`800 ${rad*.6}px Archivo,sans-serif`;
+    ctx.fillText(['300','100','50','✕'][f.k],f.x,f.y-rad*(1.3+p*.5))}
+  ctx.globalAlpha=1;
+  $('#hPts').textContent=st.pts.toLocaleString('es-AR');
+  $('#hMeta').textContent=`x${st.combo} · ${(acc()*100).toFixed(1)}%`;
+}
+
+function loop(){
+  requestAnimationFrame(loop);
+  if(mode==='rec')return drawRec();
+  if(mode!=='play')return;
+  const T=songT();
+  if(!st.armed){if(clk.on&&T<1.5)st.armed=true;else return draw(null)}
+  const g=T-cfg.lat/1000;
+  for(const n of notes){if(n.t>g)break;if(n.j===null&&g>n.t+dif.w[2])juzgar(n,3,g)}
+  draw(g);
+}
+
+function pausar(){if(mode!=='play')return;mode='pausa';src.pause();const s=st.shift||0;$('#nVal').textContent=(s>0?'+':'')+Math.round(s*1000)+' ms';ver('pausa')}
+function correr(d){
+  for(const n of notes)n.t+=d;
+  if(st.kind==='bpm'){cfg.off+=d;$('#off').value=cfg.off.toFixed(3);guardarCfg()}
+  else{const m=LS.get('ritmo_map_'+src.key,{t:[]});m.t=m.t.map(t=>+(t+d).toFixed(3));LS.set('ritmo_map_'+src.key,m)}
+  st.shift=(st.shift||0)+d;$('#nVal').textContent=(st.shift>0?'+':'')+Math.round(st.shift*1000)+' ms';
+}
+function terminar(){
+  mode='res';const c=st.c,a=acc();
+  const vac=Math.round((c[0]+c[1]*.6+c[2]*.3)/10*(a>=.9?1.2:1));
+  LS.set(VAC_KEY,LS.get(VAC_KEY,0)+vac);
+  const bk='ritmo_best_'+src.key+'_'+st.kind,best=LS.get(bk,0);if(st.pts>best)LS.set(bk,st.pts);
+  $('#rTema').textContent=src.title();$('#rPts').textContent=st.pts.toLocaleString('es-AR');
+  $('#rBest').textContent=st.pts>best?'¡Nuevo récord!':'Récord: '+best.toLocaleString('es-AR');
+  c.forEach((v,i)=>$('#r'+i).textContent=v);
+  $('#rAcc').textContent=`Precisión ${(a*100).toFixed(1)}% · combo máximo x${st.max}`;
+  $('#rVac').textContent=`+${vac} vaccoins`;
+  ver('res');
+}
+
+/* ---------- grabar mapa ---------- */
+function empezarGrab(){
+  leerCfg();rec={t:[],armed:false,flash:-9};resize();
+  $('#btnListo').style.display='';$('#btnPausa').style.display='none';
+  $('#hPts').textContent='Grabando';$('#hMeta').textContent='0 toques';
+  ver('game');mode='rec';arrancar();
+}
+function grabarTap(){if(!rec.armed)return;rec.t.push(+gameT().toFixed(3));rec.flash=performance.now();$('#hMeta').textContent=rec.t.length+' toques'}
+function drawRec(){
+  const T=songT();if(!rec.armed&&clk.on&&T<1.5)rec.armed=true;
+  ctx.clearRect(0,0,W,H);const p=Math.min(1,(performance.now()-rec.flash)/250),R=Math.min(W,H)*.22;
+  ctx.globalAlpha=1;ctx.fillStyle=`rgba(27,79,216,${.35+.5*(1-p)})`;ctx.beginPath();ctx.arc(W/2,H/2,R*(1+.15*(1-p)),0,7);ctx.fill();
+  ctx.lineWidth=6;ctx.strokeStyle='#f4f7ff';ctx.stroke();
+  ctx.fillStyle='#fff';ctx.textAlign='center';ctx.textBaseline='middle';ctx.font=`800 ${R*.35}px Archivo,sans-serif`;
+  ctx.fillText(rec.armed?fmt(T):'…',W/2,H/2);
+  ctx.font='500 16px Archivo,sans-serif';ctx.fillStyle='#8b96b5';ctx.fillText('Tocá en cualquier parte con el ritmo',W/2,H/2+R+36);
+}
+const fmt=t=>Math.floor(t/60)+':'+String(Math.floor(t%60)).padStart(2,'0');
+function terminarGrab(){
+  src.pause();mode='menu';
+  const t=rec.t.sort((a,b)=>a-b).filter((x,i,a)=>!i||x-a[i-1]>.06);
+  if(t.length<8){ver('menu');return toast('Muy pocos toques, probá de nuevo')}
+  LS.set('ritmo_map_'+src.key,{t,fecha:Date.now()});$('#btnMapa').disabled=false;
+  ver('menu');toast(`Mapa guardado: ${t.length} notas`);
+}
+
+/* ---------- menú ---------- */
+$('#chips').innerHTML=PRESETS.map((p,i)=>`<button data-i="${i}">${p.n}</button>`).join('');
+$('#chips').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;const p=PRESETS[b.dataset.i];
+  document.querySelectorAll('#chips button').forEach(x=>x.classList.toggle('sel',x===b));
+  if(p.bpm){$('#bpm').value=p.bpm;$('#dens').value=p.dens}$('#hintEstilo').textContent=p.h});
+$('#btnCargar').onclick=()=>{const id=ytId($('#url').value);id?cargarYT(id):toast('Ese link no parece de YouTube')};
+$('#url').addEventListener('keydown',e=>{if(e.key==='Enter')$('#btnCargar').click()});
+$('#archivo').onchange=e=>{const f=e.target.files[0];if(f)cargarArchivo(f)};
+$('#btnEsc').onclick=()=>{if(clk.on){src.pause();$('#btnEsc').textContent='▶ Escuchar'}else{src.play();$('#btnEsc').textContent='❚❚ Pausar'}};
+let taps=[];
+$('#btnTap').onclick=()=>{const t=performance.now()/1000;if(taps.length&&t-taps[taps.length-1]>2)taps=[];taps.push(t);taps=taps.slice(-9);
+  if(taps.length>=4){const bpm=60/((taps[taps.length-1]-taps[0])/(taps.length-1));$('#bpm').value=bpm.toFixed(1);$('#btnTap').textContent=`${Math.round(bpm)} BPM`}
+  else $('#btnTap').textContent=`Seguí… (${taps.length})`};
+$('#btnMarca').onclick=()=>{if(!clk.on)return toast('Primero poné "Escuchar"');$('#off').value=Math.max(0,gameT()).toFixed(2);toast('Primer golpe marcado')};
+$('#lat').value=cfg.lat;$('#latV').textContent=cfg.lat+' ms';
+$('#lat').oninput=e=>{cfg.lat=+e.target.value;$('#latV').textContent=cfg.lat+' ms';LS.set('ritmo_lat',cfg.lat)};
+$('#btnJugar').onclick=()=>empezar('bpm');
+$('#btnMapa').onclick=()=>empezar('map');
+$('#btnGrabar').onclick=empezarGrab;
+$('#btnListo').onclick=terminarGrab;
+$('#btnPausa').onclick=pausar;
+$('#btnSeguir').onclick=()=>{ver('game');mode='play';src.play()};
+$('#btnReiniciar').onclick=()=>empezar(st.kind);
+$('#btnSalir').onclick=()=>{mode='menu';src.pause();ver('menu')};
+$('#nMenos').onclick=()=>correr(-.01);$('#nMas').onclick=()=>correr(.01);
+$('#btnOtra').onclick=()=>empezar(st.kind);
+$('#btnMenu').onclick=()=>{mode='menu';ver('menu')};
+function mostrarVac(){const v=LS.get(VAC_KEY,0);$('#totVac').textContent=v?`Llevás ${v} vaccoins ganadas en Ritmo.`:''}
+mostrarVac();resize();loop();
+}
+</script>
+</body>
+</html>
