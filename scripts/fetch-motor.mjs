@@ -1,7 +1,7 @@
 // Automovilismo: calendario, horarios, campeonatos, últimos resultados y canales de TV.
-// F1 (Jolpica), MotoGP (API de motogp.com), NASCAR (ESPN), TC (ACTC), TC2000 y Top Race (webs oficiales),
+// F1 (Jolpica), MotoGP (API de motogp.com), NASCAR (ESPN), TC (ACTC), TC2000 y Top Race (webs oficiales), TN (cargado a mano de apat.org.ar),
 // canales: futbolenvivoargentina.com. Lo corre GitHub Actions. Uso: node scripts/fetch-motor.mjs carpeta_salida
-import { writeFile, mkdir } from 'node:fs/promises';
+import { writeFile, mkdir, readFile } from 'node:fs/promises';
 
 const dir = process.argv[2] || '.';
 const UA = { 'User-Agent':'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130 Safari/537.36', 'Accept-Language':'es-AR,es;q=0.9' };
@@ -201,6 +201,23 @@ function wrapDay(cal, standings) {
     next:nx && { name:nx.name, circuit:nx.circuit, place:nx.place, round:nx.round, dayOnly:true, sessions:[{ name:'Carrera', start:nx.date, key:true, race:true, dayOnly:true }] } };
 }
 
+/* ---------- Categorías cargadas a mano (data/motor-extra.json): Turismo Nacional ---------- */
+// La web oficial (apat.org.ar) frena a los robots, así que el cronograma lo carga Claude desde la página oficial.
+async function extra(id) {
+  const all = JSON.parse(await readFile(new URL('../data/motor-extra.json', import.meta.url), 'utf8')), x = all[id];
+  if (!x) throw new Error('sin datos de ' + id);
+  const at = (d, t) => new Date(`${d}T${t || '12:00'}:00-03:00`).toISOString();
+  const cal = x.cal.map(c => ({ ...c, date:at(c.date, '13:00'), dayOnly:true }));
+  const today = new Date(Date.now() - 3 * 3600e3).toISOString().slice(0, 10);
+  const nx = x.cal.find(c => c.date >= today);
+  const ses = nx && x.sessions?.[nx.date];
+  const next = nx && { name:nx.name, circuit:nx.circuit, place:nx.place, round:nx.round,
+    ...(ses ? { sessions:ses.map(s => ({ name:`${s.c} · ${s.n}`, cls:s.c, n:s.n, start:at(s.d, s.t), end:s.e ? at(s.d, s.e) : null, key:!!s.final || /clasif|serie/i.test(s.n), race:!!s.final })) }
+            : { dayOnly:true, sessions:[{ name:'Final', start:at(nx.date, '13:00'), key:true, race:true, dayOnly:true }] }) };
+  const groups = Object.entries(x.standings || {}).map(([g, l]) => ({ name:g, list:l.map(([name, team, pts], i) => ({ pos:i + 1, name, team, pts })) }));
+  return { cal, next, last:null, standings:groups[0]?.list || [], groups, src:x.src, srcUpdated:x.updated };
+}
+
 /* ---------- Todo junto ---------- */
 await mkdir(dir, { recursive:true });
 const guide = await tvGuide();
@@ -210,7 +227,8 @@ const CATS = {
   nascar: ['NASCAR', nascar, /nascar cup/i],
   tc:     ['Turismo Carretera', tc, /turismo carretera|^tc$/i],
   tc2000: ['TC2000', tc2000, /tc ?2000/i],
-  toprace:['Top Race', toprace, /top ?race/i]
+  toprace:['Top Race', toprace, /top ?race/i],
+  tn:     ['Turismo Nacional', () => extra('tn'), /turismo nacional|^tn\b/i]
 };
 const out = { updated:new Date().toISOString(), cats:{} };
 for (const [id, [name, fn, re]] of Object.entries(CATS)) {

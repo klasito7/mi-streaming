@@ -3,7 +3,7 @@
    Los datos los junta GitHub cada 30 min (motor.json en la rama "datos").
    ========================================================= */
 const Motor = (() => {
-  const CATS = [['f1', 'Fórmula 1', '🏎️'], ['motogp', 'MotoGP', '🏍️'], ['nascar', 'NASCAR', '🇺🇸'], ['tc', 'Turismo Carretera', '🇦🇷'], ['tc2000', 'TC2000', '🇦🇷'], ['toprace', 'Top Race', '🇦🇷']];
+  const CATS = [['f1', 'Fórmula 1', '🏎️'], ['motogp', 'MotoGP', '🏍️'], ['nascar', 'NASCAR', '🇺🇸'], ['tc', 'Turismo Carretera', '🇦🇷'], ['tc2000', 'TC2000', '🇦🇷'], ['toprace', 'Top Race', '🇦🇷'], ['tn', 'Turismo Nacional', '🇦🇷']];
   const DUR = { f1:{ Carrera:120, Sprint:45, def:60 }, motogp:{ Carrera:45, Sprint:25, Q1:15, Q2:15, 'Warm Up':10, def:45 }, nascar:{ Carrera:210, def:60 } };
   const DIAS = ['dom', 'lun', 'mar', 'mié', 'jue', 'vie', 'sáb'];
   let data = S.get('motorData', null);
@@ -31,8 +31,9 @@ const Motor = (() => {
       const same = new Date(t).toDateString() === new Date().toDateString();
       return same ? 'today' : t < now ? 'done' : 'pre';
     }
-    if (s.live || (now >= t && now < t + dur(cat, s))) return 'live';
-    return now >= t + dur(cat, s) ? 'done' : 'pre';
+    const end = s.end ? Date.parse(s.end) : t + dur(cat, s);
+    if (s.live || (now >= t && now < end)) return 'live';
+    return now >= end ? 'done' : 'pre';
   }
   function when(s) {
     const d = new Date(s.start), today = new Date(), tm = new Date(Date.now() + 864e5);
@@ -55,11 +56,11 @@ const Motor = (() => {
     const live = liveSessions();
     v.innerHTML = `
       <div class="subbar"><div class="tabs" id="mTabs">
-        <button data-m="resumen" class="${tab === 'resumen' ? 'on' : ''}">🏁 Resumen</button><button id="mPdf" title="Horarios del fin de semana (F1, Moto3, Moto2, MotoGP y Huracán) en PDF">📄 PDF del finde</button>
+        <button data-m="resumen" class="${tab === 'resumen' ? 'on' : ''}">🏁 Resumen</button><button id="mPdf" title="Horarios del fin de semana (F1, Moto3, Moto2, MotoGP, Turismo Nacional y Huracán) en PDF">📄 PDF del finde</button>
         ${CATS.map(([id, n, ic]) => `<button data-m="${id}" class="${tab === id ? 'on' : ''}">${ic} ${n}${live.some(x => x.id === id) ? ' <span class="cnt" style="background:var(--live);color:#fff;border-radius:10px;padding:0 6px">●</span>' : ''}</button>`).join('')}
       </div></div>
       <div id="mBody">${tab === 'resumen' ? resumen() : catView(tab)}</div>
-      <p class="mut" style="font-size:12px;margin-top:14px">Datos: Jolpica (F1), motogp.com, ESPN (NASCAR), ACTC, tc2000.com.ar, toprace.com.ar · Canales: futbolenvivoargentina.com · Actualizado ${ago(data.updated)} · <a href="https://vueltarapida.com/calendario" target="_blank" rel="noopener" style="color:var(--acc)">Calendario de +50 categorías en Vuelta Rápida ↗</a></p>`;
+      <p class="mut" style="font-size:12px;margin-top:14px">Datos: Jolpica (F1), motogp.com, ESPN (NASCAR), ACTC, tc2000.com.ar, toprace.com.ar, APAT (TN) · Canales: futbolenvivoargentina.com · Actualizado ${ago(data.updated)} · <a href="https://vueltarapida.com/calendario" target="_blank" rel="noopener" style="color:var(--acc)">Calendario de +50 categorías en Vuelta Rápida ↗</a></p>`;
     $('mPdf').onclick = e => { e.stopPropagation(); need('finde').then(() => Finde.open()); };
     $('mTabs').onclick = e => { const b = e.target.closest('[data-m]'); if (b) { tab = b.dataset.m; S.set('motorTab', tab); render(); } };
     v.querySelectorAll('[data-go]').forEach(b => b.onclick = () => { tab = b.dataset.go; S.set('motorTab', tab); render(); $('scroller').scrollTo(0, 0); });
@@ -133,7 +134,9 @@ const Motor = (() => {
       <div class="vcols" style="margin-top:16px">
         <div>
           ${c.last && lastTop.length ? `<h2 class="sec">🏆 Último resultado · ${esc(c.last.name)}</h2>${table(lastTop, { team:true })}` : ''}
-          ${top.length ? `<h2 class="sec" style="margin-top:14px">📊 Campeonato</h2>${table(top, { pts:true, team:id === 'f1' || id === 'motogp' })}` : ''}
+          ${c.groups?.length > 1 ? c.groups.map(g => `<h2 class="sec" style="margin-top:14px">📊 Campeonato ${esc(g.name)}</h2>${table(g.list, { pts:true, team:true })}`).join('')
+            : top.length ? `<h2 class="sec" style="margin-top:14px">📊 Campeonato</h2>${table(top, { pts:true, team:id === 'f1' || id === 'motogp' })}` : ''}
+          ${c.src ? `<p class="mut" style="font-size:11px">Datos de ${esc(c.src)}, cargados a mano el ${esc(String(c.srcUpdated || '').split('-').reverse().join('/'))}.</p>` : ''}
         </div>
         <div>
           ${news.length ? `<h2 class="sec">📰 Noticias</h2>${Noticias.list(news, 8)}` : ''}

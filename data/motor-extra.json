@@ -1,0 +1,53 @@
+{
+  "_nota": "Categorías que no tienen una fuente que el robot pueda leer sola (la web oficial bloquea robots). Las carga Claude a mano desde la página oficial. Horarios en hora de Argentina.",
+  "tn": {
+    "name": "Turismo Nacional",
+    "src": "apat.org.ar (oficial)",
+    "updated": "2026-11-27",
+    "cal": [
+      { "round": 1, "name": "Paraná", "circuit": "Autódromo Ciudad de Paraná", "place": "Entre Ríos", "date": "2026-02-08" },
+      { "round": 2, "name": "Alta Gracia", "circuit": "Autódromo Oscar Cabalén", "place": "Córdoba", "date": "2026-03-15" },
+      { "round": 3, "name": "Rosario", "circuit": "Autódromo Rosario", "place": "Santa Fe", "date": "2026-04-05" },
+      { "round": 4, "name": "San Juan", "circuit": "Circuito San Juan Villicum", "place": "San Juan", "date": "2026-05-03" },
+      { "round": 5, "name": "La Plata", "circuit": "Autódromo Roberto Mouras", "place": "Buenos Aires", "date": "2026-06-07" },
+      { "round": 6, "name": "Termas de Río Hondo", "circuit": "Circuito Termas de Río Hondo", "place": "Santiago del Estero", "date": "2026-07-05" },
+      { "round": 7, "name": "San Juan", "circuit": "Circuito San Juan Villicum", "place": "San Juan", "date": "2026-08-02" },
+      { "round": 8, "name": "Oberá", "circuit": "Autódromo Ciudad de Oberá", "place": "Misiones", "date": "2026-08-30" },
+      { "round": 9, "name": "Río Cuarto", "circuit": "Autódromo Ciudad de Río Cuarto", "place": "Córdoba", "date": "2026-09-20" },
+      { "round": 10, "name": "San Martín", "circuit": "Autódromo Ciudad de San Martín", "place": "Mendoza", "date": "2026-10-11" },
+      { "round": 11, "name": "Concordia", "circuit": "Autódromo Ciudad de Concordia", "place": "Entre Ríos", "date": "2026-11-01" },
+      { "round": 12, "name": "Viedma (GP Coronación)", "circuit": "Autódromo Ciudad de Viedma", "place": "Río Negro", "date": "2026-11-29" }
+    ],
+    "sessions": {
+      "2026-11-29": [
+        { "d": "2026-11-28", "t": "08:40", "e": "09:45", "c": "Clase 2", "n": "1er entrenamiento" },
+        { "d": "2026-11-28", "t": "09:50", "e": "10:55", "c": "Clase 3", "n": "1er entrenamiento" },
+        { "d": "2026-11-28", "t": "11:00", "e": "11:55", "c": "Clase 2", "n": "2do entrenamiento" },
+        { "d": "2026-11-28", "t": "12:00", "e": "12:55", "c": "Clase 3", "n": "2do entrenamiento" },
+        { "d": "2026-11-28", "t": "15:10", "e": "15:50", "c": "Clase 2", "n": "Clasificación (1ª tanda)" },
+        { "d": "2026-11-28", "t": "16:00", "e": "16:40", "c": "Clase 3", "n": "Clasificación" },
+        { "d": "2026-11-28", "t": "17:20", "e": "18:00", "c": "Clase 2", "n": "Clasificación (2ª tanda)" },
+        { "d": "2026-11-29", "t": "10:05", "c": "Clase 2", "n": "1ª serie (5 vueltas)" },
+        { "d": "2026-11-29", "t": "10:30", "c": "Clase 2", "n": "2ª serie (5 vueltas)" },
+        { "d": "2026-11-29", "t": "10:55", "c": "Clase 3", "n": "1ª serie (5 vueltas)" },
+        { "d": "2026-11-29", "t": "11:20", "c": "Clase 3", "n": "2ª serie (5 vueltas)" },
+        { "d": "2026-11-29", "t": "12:45", "c": "Clase 2", "n": "FINAL (16 vueltas)", "final": true },
+        { "d": "2026-11-29", "t": "14:00", "c": "Clase 3", "n": "FINAL (20 vueltas)", "final": true }
+      ]
+    },
+    "standings": {
+      "Clase 3": [
+        ["Agustín Canapino", "Chevrolet", 320], ["Julián Santero", "Volkswagen", 298], ["Mauricio Lambiris", "Ford", 249], ["Facundo Chapur", "Honda", 232],
+        ["Jorge Barrio", "Chevrolet", 221], ["Bautista Damiani", "Volkswagen", 212], ["Sebastián Gómez", "Volkswagen", 172], ["Facundo Ardusso", "Toyota", 166],
+        ["Leonel Pernia", "Ford", 166], ["Lucas Vicino", "Toyota", 165], ["José Manuel Urcera", "Honda", 160], ["Jonatan Castellano", "Chevrolet", 141],
+        ["Thiago Martínez", "Ford", 135], ["Ever Franetovich", "Ford", 133], ["Alfonso Domenech", "Honda", 127]
+      ],
+      "Clase 2": [
+        ["Tomás Vitar", "Nissan March", 316], ["Exequiel Bastidas", "Toyota Yaris", 315], ["Francisco Coltrinari", "Peugeot 208", 289], ["Martín Lestón", "Peugeot 208", 220],
+        ["Juan Ignacio Canela", "Toyota Yaris", 220], ["Santino Balerini", "Peugeot 208", 169], ["Maximiliano Bestani", "Chevrolet Onix", 153], ["Valentino Quattrocchi", "Toyota Yaris", 149],
+        ["Pedro Grippo", "Toyota Yaris", 146], ["Renzo Blotta", "Peugeot 208", 144], ["Andrés Calderón", "Peugeot 208", 143], ["Juan Eduardo Kreitz", "Peugeot 208", 128],
+        ["Juan Martín Eluchans", "Toyota Yaris", 127], ["Braian Reinoso", "Chevrolet Onix", 117], ["Lucas Petracchini", "Chevrolet Onix", 114]
+      ]
+    }
+  }
+}
