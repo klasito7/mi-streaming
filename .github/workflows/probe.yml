@@ -1,0 +1,27 @@
+name: probe
+on:
+  push:
+    paths: ['.github/workflows/probe.yml']
+permissions:
+  contents: write
+jobs:
+  p:
+    runs-on: ubuntu-latest
+    steps:
+      - shell: bash
+        run: |
+          set +e
+          mkdir o && cd o
+          UA='Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130 Safari/537.36'
+          C="curl -sL --compressed -A \"$UA\" -H 'Accept-Language: es-AR'"
+          eval $C https://vueltarapida.com/robots.txt -o robots.txt
+          eval $C https://vueltarapida.com/calendario -o cal.html
+          eval $C https://vueltarapida.com/ -o home.html
+          grep -oE 'href="[^"]+"' cal.html home.html | sort -u > links.txt
+          for u in $(grep -oiE 'href="[^"]*(turismo-nacional|/tn)[^"]*"' cal.html home.html | cut -d'"' -f2 | sort -u | head -8); do
+            case $u in http*) U=$u;; *) U=https://vueltarapida.com$u;; esac
+            f=$(echo $u | tr -c 'a-z0-9' '_' | cut -c1-80).html; eval $C "$U" -o "tn_$f"; echo "$U -> tn_$f" >> tn.txt
+          done
+          ls -la > ls.txt
+          git init -q; git checkout -q -b probe; git add -A; git -c user.name=p -c user.email=p@p commit -qm probe
+          git push -qf "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}" probe
