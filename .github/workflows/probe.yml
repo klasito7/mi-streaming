@@ -14,13 +14,14 @@ jobs:
           mkdir o && cd o
           UA='Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130 Safari/537.36'
           C="curl -sL --compressed -A \"$UA\" -H 'Accept-Language: es-AR'"
-          eval $C https://vueltarapida.com/assets/index-DeEJ_wfs.js -o bundle.js
-          eval $C https://vueltarapida.com/legals/terminos -o terminos.html
-          grep -oE '"(https?:)?//[^"]{4,120}"|`(https?:)?//[^`]{4,120}`' bundle.js | sort -u > urls.txt
-          grep -oE '"/api[^"]{0,100}"|/v1/[a-zA-Z0-9_/-]{2,60}|from\("[a-z_]+"\)|\.from\(.[a-z_]+.\)' bundle.js | sort | uniq -c | sort -rn | head -150 > api.txt
-          grep -oE '.{150}calendar.{150}' bundle.js | head -40 > calctx.txt
-          gzip -k bundle.js
-          rm bundle.js
+          A='curl -sL --compressed -A FUNVS/1.0'
+          $A https://apat.org.ar/robots.txt -o robots.txt
+          $A https://apat.org.ar/carreras/info/2026-11-29 -o info.html
+          $A https://apat.org.ar/carreras/info/2026-11-01 -o info_prev.html
+          $A https://apat.org.ar/campeonato/ranking/c3 -o rk3.html
+          $A https://apat.org.ar/campeonato/posiciones/c3 -o ps3.html
+          $A https://apat.org.ar/carreras/resultados/2026-11-01/c3 -o res3.html
+          $A https://apat.org.ar/ -o home.html
           ls -la > ls.txt
           git init -q; git checkout -q -b probe; git add -A; git -c user.name=p -c user.email=p@p commit -qm probe
           git push -qf "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}" probe
